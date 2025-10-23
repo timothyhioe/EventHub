@@ -16,7 +16,7 @@ A modern full-stack web application for managing events, participants, and tags.
 - Node.js with TypeScript
 - Express.js
 - PostgreSQL
-- Prisma ORM
+- Drizzle ORM
 - Docker
 
 ### Frontend
@@ -32,15 +32,31 @@ A modern full-stack web application for managing events, participants, and tags.
 
 ## Quick Start
 
-1. Clone the repository
-2. Run with Docker:
+1. **Clone the repository**
+
+2. **Set up environment variables:**
    ```bash
-   docker-compose up --build
+   cd backend
+   cp env.example .env
+   cd ..
    ```
 
-3. Access the application:
+3. **Run with Docker:**
+   ```bash
+   docker compose up --build
+   ```
+
+4. **Set up the database:**
+   ```bash
+   # In a new terminal, push the database schema
+   cd backend
+   npm run db:push
+   ```
+
+5. **Access the application:**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
+   - Database: localhost:5433 (PostgreSQL)
 
 ## Project Structure
 
@@ -71,7 +87,16 @@ The API documentation will be available once the backend is implemented.
 ```bash
 cd backend
 npm install
+cp env.example .env  # Create .env file
 npm run dev
+```
+
+### Database Management
+```bash
+cd backend
+npm run db:generate  # Generate migration files
+npm run db:push      # Push schema to database
+npm run db:studio    # Open Drizzle Studio (GUI)
 ```
 
 ### Frontend Development
@@ -80,3 +105,14 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Database Schema
+
+The database includes the following tables:
+- **events** - Event information (title, description, location, date, image)
+- **tags** - Color-coded tags for organizing events
+- **participants** - People who can attend events
+- **event_tags** - Many-to-many relationship between events and tags
+- **event_participants** - Many-to-many relationship between events and participants
+
+For detailed schema information, see `backend/src/db/schema.ts`
