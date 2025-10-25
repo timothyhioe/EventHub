@@ -4,7 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
-// Load environment variables
+import eventRoutes from './routes/eventRoutes';
+
 dotenv.config();
 
 const app = express();
@@ -17,12 +18,18 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Basic route
+// Routes
+app.use('/api/events', eventRoutes);
+
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Event Management System API',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    endpoints: {
+      events: '/api/events',
+      health: '/health'
+    }
   });
 });
 
