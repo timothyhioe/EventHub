@@ -5,11 +5,13 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 
 import eventRoutes from './routes/eventRoutes';
+import tagRoutes from './routes/tagRoutes';
+import participantRoutes from './routes/participantRoutes';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT
 
 // Middleware
 app.use(helmet());
@@ -20,6 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/events', eventRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/participants', participantRoutes);
 
 app.get('/', (req, res) => {
   res.json({ 
@@ -28,6 +32,8 @@ app.get('/', (req, res) => {
     status: 'running',
     endpoints: {
       events: '/api/events',
+      tags: '/api/tags',
+      participants: '/api/participants',
       health: '/health'
     }
   });
