@@ -6,18 +6,84 @@ import { AddTagToEventRequest } from '../types/tag';
 import { AddParticipantToEventRequest } from '../types/participant';
 
 export class EventController {
-  // GET /api/events - Get all events
+  // GET /api/events - Get all events with search and filter capabilities
   static async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
-      const { include } = req.query;
-      const includeRelations = include === 'true';
-      
-      const events = await EventService.getAllEvents(includeRelations);
+      const {
+        search,
+        startDate,
+        endDate,
+        location,
+        tags,
+        include,
+        limit,
+        offset
+      } = req.query;
+
+      // Parse and validate query parameters
+      const filters: any = {
+        includeRelations: include === 'true'
+      };
+
+      // Search parameter
+      if (search && typeof search === 'string') {
+        filters.search = search.trim();
+      }
+
+      // Date range parameters
+      if (startDate && typeof startDate === 'string') {
+        const parsedStartDate = new Date(startDate);
+        if (!isNaN(parsedStartDate.getTime())) {
+          filters.startDate = parsedStartDate;
+        }
+      }
+
+      if (endDate && typeof endDate === 'string') {
+        const parsedEndDate = new Date(endDate);
+        if (!isNaN(parsedEndDate.getTime())) {
+          filters.endDate = parsedEndDate;
+        }
+      }
+
+      // Location parameter
+      if (location && typeof location === 'string') {
+        filters.location = location.trim();
+      }
+
+      // Tags parameter (can be comma-separated)
+      if (tags && typeof tags === 'string') {
+        const tagIds = tags.split(',').map(id => id.trim()).filter(id => id.length > 0);
+        if (tagIds.length > 0) {
+          filters.tagIds = tagIds;
+        }
+      }
+
+      // Pagination parameters
+      if (limit && typeof limit === 'string') {
+        const parsedLimit = parseInt(limit, 10);
+        if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100) {
+          filters.limit = parsedLimit;
+        }
+      }
+
+      if (offset && typeof offset === 'string') {
+        const parsedOffset = parseInt(offset, 10);
+        if (!isNaN(parsedOffset) && parsedOffset >= 0) {
+          filters.offset = parsedOffset;
+        }
+      }
+
+      const result = await EventService.getAllEventsWithFilters(filters);
       
       res.json({
         success: true,
-        data: events,
-        count: events.length
+        data: result.events,
+        pagination: {
+          total: result.total,
+          limit: filters.limit || 50,
+          offset: filters.offset || 0,
+          hasMore: (filters.offset || 0) + result.events.length < result.total
+        }
       });
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -370,6 +436,179 @@ export class EventController {
       res.status(500).json({
         success: false,
         message: 'Failed to remove participant from event',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // GET /api/events/search?q=query - Search events
+  static async searchEvents(req: Request, res: Response): Promise<void> {
+    try {
+      const { q, limit, offset } = req.query;
+      
+      if (!q || typeof q !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: 'Search query is required'
+        });
+        return;
+      }
+
+      const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+
+      const result = await EventService.searchEvents(q, parsedLimit, parsedOffset);
+      
+      res.json({
+        success: true,
+        data: result.events,
+        pagination: {
+          total: result.total,
+          limit: parsedLimit,
+          offset: parsedOffset,
+          hasMore: parsedOffset + result.events.length < result.total
+        }
+      });
+    } catch (error) {
+      console.error('Error searching events:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to search events',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // GET /api/events/filter/date?start=date&end=date - Filter by date range
+  static async getEventsByDateRange(req: Request, res: Response): Promise<void> {
+    try {
+      const { start, end, limit, offset } = req.query;
+      
+      if (!start || !end || typeof start !== 'string' || typeof end !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: 'Start date and end date are required'
+        });
+        return;
+      }
+
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid date format. Use ISO date format (YYYY-MM-DD)'
+        });
+        return;
+      }
+
+      const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+
+      const result = await EventService.getEventsByDateRange(startDate, endDate, parsedLimit, parsedOffset);
+      
+      res.json({
+        success: true,
+        data: result.events,
+        pagination: {
+          total: result.total,
+          limit: parsedLimit,
+          offset: parsedOffset,
+          hasMore: parsedOffset + result.events.length < result.total
+        }
+      });
+    } catch (error) {
+      console.error('Error filtering events by date range:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to filter events by date range',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // GET /api/events/filter/location?location=location - Filter by location
+  static async getEventsByLocation(req: Request, res: Response): Promise<void> {
+    try {
+      const { location, limit, offset } = req.query;
+      
+      if (!location || typeof location !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: 'Location is required'
+        });
+        return;
+      }
+
+      const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+
+      const result = await EventService.getEventsByLocation(location, parsedLimit, parsedOffset);
+      
+      res.json({
+        success: true,
+        data: result.events,
+        pagination: {
+          total: result.total,
+          limit: parsedLimit,
+          offset: parsedOffset,
+          hasMore: parsedOffset + result.events.length < result.total
+        }
+      });
+    } catch (error) {
+      console.error('Error filtering events by location:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to filter events by location',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // GET /api/events/filter/tags?tags=id1,id2,id3 - Filter by tags
+  static async getEventsByTags(req: Request, res: Response): Promise<void> {
+    try {
+      const { tags, limit, offset } = req.query;
+      
+      if (!tags || typeof tags !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: 'Tags are required (comma-separated tag IDs)'
+        });
+        return;
+      }
+
+      const tagIds = tags.split(',').map(id => id.trim()).filter(id => id.length > 0);
+      
+      if (tagIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'At least one valid tag ID is required'
+        });
+        return;
+      }
+
+      const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
+      const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
+
+      const result = await EventService.getEventsByTags(tagIds, parsedLimit, parsedOffset);
+      
+      res.json({
+        success: true,
+        data: result.events,
+        pagination: {
+          total: result.total,
+          limit: parsedLimit,
+          offset: parsedOffset,
+          hasMore: parsedOffset + result.events.length < result.total
+        }
+      });
+    } catch (error) {
+      console.error('Error filtering events by tags:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to filter events by tags',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

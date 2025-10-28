@@ -1,17 +1,131 @@
 import { db, events, tags, participants, eventTags, eventParticipants } from '../db';
 import { NewEvent, UpdateEvent, EventResponse } from '../types/event';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, or, ilike, gte, lte, inArray, sql } from 'drizzle-orm';
 
 export class EventService {
-  // Get all events with optional relationships
-  static async getAllEvents(includeRelations = false): Promise<EventResponse[]> {
-    const baseQuery = db.select().from(events).orderBy(desc(events.createdAt));
-    
-    if (includeRelations) {
-      return await baseQuery;
+  // get all events with filter capabilities
+  static async getAllEventsWithFilters(filters: {
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+    location?: string;
+    tagIds?: string[];
+    includeRelations?: boolean;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ events: EventResponse[]; total: number }> {
+    const {
+      search,
+      startDate,
+      endDate,
+      location,
+      tagIds,
+      includeRelations = false,
+      limit = 50,
+      offset = 0
+    } = filters;
+
+    const conditions = [];
+
+    // search by title/description
+    if (search) {
+      conditions.push(
+        or(
+          ilike(events.title, `%${search}%`),
+          ilike(events.description, `%${search}%`)
+        )
+      );
     }
+
+    // Filter by date range
+    if (startDate) {
+      conditions.push(gte(events.date, startDate));
+    }
+    if (endDate) {
+      conditions.push(lte(events.date, endDate));
+    }
+
+    // Filter by location
+    if (location) {
+      conditions.push(ilike(events.location, `%${location}%`));
+    }
+
+    // Filter by tags
+    if (tagIds && tagIds.length > 0) {
+      const eventIdsWithTags = db
+        .select({ eventId: eventTags.eventId })
+        .from(eventTags)
+        .where(inArray(eventTags.tagId, tagIds));
+      
+      conditions.push(inArray(events.id, eventIdsWithTags));
+    }
+
+    // Build the main query
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
     
-    return await baseQuery;
+    // Get total count for pagination
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(events)
+      .where(whereClause);
+    
+    const total = Number(totalResult[0]?.count) || 0;
+
+    // Get events with pagination
+    const eventsResult = await db
+      .select()
+      .from(events)
+      .where(whereClause)
+      .orderBy(desc(events.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    // If includeRelations is true, fetch related data
+    if (includeRelations) {
+      const eventsWithRelations = await Promise.all(
+        eventsResult.map(async (event) => {
+          const [eventTagsData, eventParticipantsData] = await Promise.all([
+            // Get tags for this event
+            db
+              .select({
+                id: tags.id,
+                name: tags.name,
+                color: tags.color
+              })
+              .from(eventTags)
+              .innerJoin(tags, eq(eventTags.tagId, tags.id))
+              .where(eq(eventTags.eventId, event.id)),
+            
+            // Get participants for this event
+            db
+              .select({
+                id: participants.id,
+                name: participants.name,
+                email: participants.email
+              })
+              .from(eventParticipants)
+              .innerJoin(participants, eq(eventParticipants.participantId, participants.id))
+              .where(eq(eventParticipants.eventId, event.id))
+          ]);
+
+          return {
+            ...event,
+            tags: eventTagsData,
+            participants: eventParticipantsData
+          };
+        })
+      );
+
+      return { events: eventsWithRelations, total };
+    }
+
+    return { events: eventsResult, total };
+  }
+
+  // Keep the original method for backward compatibility
+  static async getAllEvents(includeRelations = false): Promise<EventResponse[]> {
+    const result = await this.getAllEventsWithFilters({ includeRelations });
+    return result.events;
   }
 
   // Get single event by ID
@@ -43,15 +157,45 @@ export class EventService {
     return result.length > 0;
   }
 
-  // Search events by title or description
-  static async searchEvents(query: string): Promise<EventResponse[]> {
-    // We'll implement this with proper search later
-    return await db.select().from(events).orderBy(desc(events.createdAt));
+  // Enhanced search method
+  static async searchEvents(query: string, limit = 50, offset = 0): Promise<{ events: EventResponse[]; total: number }> {
+    return await this.getAllEventsWithFilters({
+      search: query,
+      limit,
+      offset
+    });
   }
 
-  // Get events by date range
-  static async getEventsByDateRange(startDate: Date, endDate: Date): Promise<EventResponse[]> {
-    // We'll implement this with proper date filtering later
-    return await db.select().from(events).orderBy(desc(events.createdAt));
+  // Enhanced date range method
+  static async getEventsByDateRange(
+    startDate: Date, 
+    endDate: Date, 
+    limit = 50, 
+    offset = 0
+  ): Promise<{ events: EventResponse[]; total: number }> {
+    return await this.getAllEventsWithFilters({
+      startDate,
+      endDate,
+      limit,
+      offset
+    });
   }
-}       
+
+  // Get events by location
+  static async getEventsByLocation(location: string, limit = 50, offset = 0): Promise<{ events: EventResponse[]; total: number }> {
+    return await this.getAllEventsWithFilters({
+      location,
+      limit,
+      offset
+    });
+  }
+
+  // Get events by tags
+  static async getEventsByTags(tagIds: string[], limit = 50, offset = 0): Promise<{ events: EventResponse[]; total: number }> {
+    return await this.getAllEventsWithFilters({
+      tagIds,
+      limit,
+      offset
+    });
+  }
+}
