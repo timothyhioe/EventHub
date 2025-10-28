@@ -1,24 +1,30 @@
 import { Router } from 'express';
 import { ParticipantController } from '../controllers/participantController';
 
-const router = Router();
+export class ParticipantRoutes {
+  constructor(private participantController: ParticipantController) {}
 
-// GET /api/participants - Get all participants
-router.get('/', ParticipantController.getAllParticipants);
+  getRoutes(): Router {
+    const router = Router();
 
-// GET /api/participants/:id - Get single participant
-router.get('/:id', ParticipantController.getParticipantById);
+    // GET /api/participants - Get all participants
+    router.get('/', this.participantController.getAllParticipants.bind(this.participantController));
 
-// POST /api/participants - Create new participant
-router.post('/', ParticipantController.createParticipant);
+    // GET /api/participants/:id - Get single participant
+    router.get('/:id', this.participantController.getParticipantById.bind(this.participantController));
 
-// PUT /api/participants/:id - Update participant
-router.put('/:id', ParticipantController.updateParticipant);
+    // POST /api/participants - Create new participant
+    router.post('/', this.participantController.createParticipant.bind(this.participantController));
 
-// DELETE /api/participants/:id - Delete participant
-router.delete('/:id', ParticipantController.deleteParticipant);
+    // PUT /api/participants/:id - Update participant
+    router.put('/:id', this.participantController.updateParticipant.bind(this.participantController));
 
-// GET /api/participants/:id/events - Get all events for a participant
-router.get('/:id/events', ParticipantController.getEventsForParticipant);
+    // DELETE /api/participants/:id - Delete participant
+    router.delete('/:id', this.participantController.deleteParticipant.bind(this.participantController));
 
-export default router;
+    // GET /api/participants/:id/events - Get all events for a participant
+    router.get('/:id/events', this.participantController.getEventsForParticipant.bind(this.participantController));
+
+    return router;
+  }
+}

@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { ParticipantService } from '../services/participantService';
+import { ParticipantRepository } from '../db/repository/participant.repository';
 import { CreateParticipantRequest, UpdateParticipantRequest } from '../types/participant';
 
 export class ParticipantController {
+  constructor(private participantRepository: ParticipantRepository) {}
   // GET /api/participants - Get all participants
-  static async getAllParticipants(req: Request, res: Response): Promise<void> {
+  async getAllParticipants(req: Request, res: Response): Promise<void> {
     try {
-      const participants = await ParticipantService.getAllParticipants();
+      const participants = await this.participantRepository.getAllParticipants();
       
       res.json({
         success: true,
@@ -24,7 +25,7 @@ export class ParticipantController {
   }
 
   // GET /api/participants/:id - Get single participant
-  static async getParticipantById(req: Request, res: Response): Promise<void> {
+  async getParticipantById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -36,7 +37,7 @@ export class ParticipantController {
         return;
       }
 
-      const participant = await ParticipantService.getParticipantById(id);
+      const participant = await this.participantRepository.getParticipantById(id);
       
       if (!participant) {
         res.status(404).json({
@@ -61,7 +62,7 @@ export class ParticipantController {
   }
 
   // POST /api/participants - Create new participant
-  static async createParticipant(req: Request, res: Response): Promise<void> {
+  async createParticipant(req: Request, res: Response): Promise<void> {
     try {
       const participantData: CreateParticipantRequest = req.body;
       
@@ -85,7 +86,7 @@ export class ParticipantController {
       }
 
       // Check if email already exists
-      const emailExists = await ParticipantService.emailExists(participantData.email);
+      const emailExists = await this.participantRepository.emailExists(participantData.email);
       if (emailExists) {
         res.status(409).json({
           success: false,
@@ -94,7 +95,7 @@ export class ParticipantController {
         return;
       }
 
-      const newParticipant = await ParticipantService.createParticipant(participantData);
+      const newParticipant = await this.participantRepository.createParticipant(participantData);
       
       res.status(201).json({
         success: true,
@@ -112,7 +113,7 @@ export class ParticipantController {
   }
 
   // PUT /api/participants/:id - Update participant
-  static async updateParticipant(req: Request, res: Response): Promise<void> {
+  async updateParticipant(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updateData: UpdateParticipantRequest = req.body;
@@ -137,7 +138,7 @@ export class ParticipantController {
         }
 
         // Check if email already exists (for updates)
-        const emailExists = await ParticipantService.emailExists(updateData.email, id);
+        const emailExists = await this.participantRepository.emailExists(updateData.email, id);
         if (emailExists) {
           res.status(409).json({
             success: false,
@@ -147,7 +148,7 @@ export class ParticipantController {
         }
       }
 
-      const updatedParticipant = await ParticipantService.updateParticipant(id, updateData);
+      const updatedParticipant = await this.participantRepository.updateParticipant(id, updateData);
       
       if (!updatedParticipant) {
         res.status(404).json({
@@ -173,7 +174,7 @@ export class ParticipantController {
   }
 
   // DELETE /api/participants/:id - Delete participant
-  static async deleteParticipant(req: Request, res: Response): Promise<void> {
+  async deleteParticipant(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -185,7 +186,7 @@ export class ParticipantController {
         return;
       }
 
-      const deleted = await ParticipantService.deleteParticipant(id);
+      const deleted = await this.participantRepository.deleteParticipant(id);
       
       if (!deleted) {
         res.status(404).json({
@@ -210,7 +211,7 @@ export class ParticipantController {
   }
 
   // GET /api/participants/:id/events - Get all events for a participant
-  static async getEventsForParticipant(req: Request, res: Response): Promise<void> {
+  async getEventsForParticipant(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -223,7 +224,7 @@ export class ParticipantController {
       }
 
       // Check if participant exists
-      const participant = await ParticipantService.getParticipantById(id);
+      const participant = await this.participantRepository.getParticipantById(id);
       if (!participant) {
         res.status(404).json({
           success: false,
@@ -232,7 +233,7 @@ export class ParticipantController {
         return;
       }
 
-      const events = await ParticipantService.getEventsForParticipant(id);
+      const events = await this.participantRepository.getEventsForParticipant(id);
       
       res.json({
         success: true,

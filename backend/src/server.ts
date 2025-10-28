@@ -1,11 +1,14 @@
-import app from './app';
+import { App } from './app';
 import { ENV } from './config/env.config';
 
-// This file is the entry point for the server
-// The app is imported and started here
+export class Server {
+  constructor(private app: App, private env: typeof ENV) {}
 
-app.listen(ENV.PORT, () => {
-  console.log(`Server running on port ${ENV.PORT}`);
-  console.log(`API available at http://localhost:${ENV.PORT}`);
-  console.log(`Database: ${ENV.DATABASE_URL.replace(/:[^:@]+@/, ':****@')}`);
-});
+  start(): void {
+    this.app.app.listen(this.env.PORT, () => {
+      console.log(`Server running on port ${this.env.PORT}`);
+      console.log(`API available at http://localhost:${this.env.PORT}`);
+      console.log(`Database: ${this.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@')}`);
+    });
+  }
+}

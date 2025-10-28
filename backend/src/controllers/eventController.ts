@@ -1,13 +1,17 @@
 import { Request, Response } from 'express';
-import { EventService } from '../services/eventService';
-import { RelationshipService } from '../services/relationshipService';
+import { EventRepository } from '../db/repository/event.repository';
+import { RelationshipRepository } from '../db/repository/relationship.repository';
 import { CreateEventRequest, UpdateEventRequest } from '../types/event';
 import { AddTagToEventRequest } from '../types/tag';
 import { AddParticipantToEventRequest } from '../types/participant';
 
 export class EventController {
+  constructor(
+    private eventRepository: EventRepository,
+    private relationshipRepository: RelationshipRepository
+  ) {}
   // GET /api/events - Get all events with search and filter capabilities
-  static async getAllEvents(req: Request, res: Response): Promise<void> {
+  async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
       const {
         search,
@@ -73,7 +77,7 @@ export class EventController {
         }
       }
 
-      const result = await EventService.getAllEventsWithFilters(filters);
+      const result = await this.eventRepository.getAllEventsWithFilters(filters);
       
       res.json({
         success: true,
@@ -96,7 +100,7 @@ export class EventController {
   }
 
   // GET /api/events/:id - Get single event
-  static async getEventById(req: Request, res: Response): Promise<void> {
+  async getEventById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -108,7 +112,7 @@ export class EventController {
         return;
       }
 
-      const event = await EventService.getEventById(id);
+      const event = await this.eventRepository.getEventById(id);
       
       if (!event) {
         res.status(404).json({
@@ -133,7 +137,7 @@ export class EventController {
   }
 
   // POST /api/events - Create new event
-  static async createEvent(req: Request, res: Response): Promise<void> {
+  async createEvent(req: Request, res: Response): Promise<void> {
     try {
       const eventData: CreateEventRequest = req.body;
       
@@ -152,7 +156,7 @@ export class EventController {
         date: new Date(eventData.date)
       };
 
-      const newEvent = await EventService.createEvent(eventToCreate);
+      const newEvent = await this.eventRepository.createEvent(eventToCreate);
       
       res.status(201).json({
         success: true,
@@ -170,7 +174,7 @@ export class EventController {
   }
 
   // PUT /api/events/:id - Update event
-  static async updateEvent(req: Request, res: Response): Promise<void> {
+  async updateEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updateData: UpdateEventRequest = req.body;
@@ -189,7 +193,7 @@ export class EventController {
         processedUpdateData.date = new Date(processedUpdateData.date);
       }
 
-      const updatedEvent = await EventService.updateEvent(id, processedUpdateData);
+      const updatedEvent = await this.eventRepository.updateEvent(id, processedUpdateData);
       
       if (!updatedEvent) {
         res.status(404).json({
@@ -215,7 +219,7 @@ export class EventController {
   }
 
   // DELETE /api/events/:id - Delete event
-  static async deleteEvent(req: Request, res: Response): Promise<void> {
+  async deleteEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -227,7 +231,7 @@ export class EventController {
         return;
       }
 
-      const deleted = await EventService.deleteEvent(id);
+      const deleted = await this.eventRepository.deleteEvent(id);
       
       if (!deleted) {
         res.status(404).json({
@@ -252,7 +256,7 @@ export class EventController {
   }
 
   // POST /api/events/:id/tags - Add tag to event
-  static async addTagToEvent(req: Request, res: Response): Promise<void> {
+  async addTagToEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id: eventId } = req.params;
       const { tagId }: AddTagToEventRequest = req.body;
@@ -266,7 +270,7 @@ export class EventController {
       }
 
       // Check if event exists
-      const event = await EventService.getEventById(eventId);
+      const event = await this.eventRepository.getEventById(eventId);
       if (!event) {
         res.status(404).json({
           success: false,
@@ -276,7 +280,7 @@ export class EventController {
       }
 
       // Check if relationship already exists
-      const alreadyAssociated = await RelationshipService.isTagAssociatedWithEvent(eventId, tagId);
+      const alreadyAssociated = await this.relationshipRepository.isTagAssociatedWithEvent(eventId, tagId);
       if (alreadyAssociated) {
         res.status(409).json({
           success: false,
@@ -285,7 +289,7 @@ export class EventController {
         return;
       }
 
-      const success = await RelationshipService.addTagToEvent(eventId, tagId);
+      const success = await this.relationshipRepository.addTagToEvent(eventId, tagId);
       
       if (!success) {
         res.status(409).json({
@@ -310,7 +314,7 @@ export class EventController {
   }
 
   // DELETE /api/events/:id/tags/:tagId - Remove tag from event
-  static async removeTagFromEvent(req: Request, res: Response): Promise<void> {
+  async removeTagFromEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id: eventId, tagId } = req.params;
       
@@ -322,7 +326,7 @@ export class EventController {
         return;
       }
 
-      const success = await RelationshipService.removeTagFromEvent(eventId, tagId);
+      const success = await this.relationshipRepository.removeTagFromEvent(eventId, tagId);
       
       if (!success) {
         res.status(404).json({
@@ -347,7 +351,7 @@ export class EventController {
   }
 
   // POST /api/events/:id/participants - Add participant to event
-  static async addParticipantToEvent(req: Request, res: Response): Promise<void> {
+  async addParticipantToEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id: eventId } = req.params;
       const { participantId }: AddParticipantToEventRequest = req.body;
@@ -361,7 +365,7 @@ export class EventController {
       }
 
       // Check if event exists
-      const event = await EventService.getEventById(eventId);
+      const event = await this.eventRepository.getEventById(eventId);
       if (!event) {
         res.status(404).json({
           success: false,
@@ -371,7 +375,7 @@ export class EventController {
       }
 
       // Check if relationship already exists
-      const alreadyAssociated = await RelationshipService.isParticipantAssociatedWithEvent(eventId, participantId);
+      const alreadyAssociated = await this.relationshipRepository.isParticipantAssociatedWithEvent(eventId, participantId);
       if (alreadyAssociated) {
         res.status(409).json({
           success: false,
@@ -380,7 +384,7 @@ export class EventController {
         return;
       }
 
-      const success = await RelationshipService.addParticipantToEvent(eventId, participantId);
+      const success = await this.relationshipRepository.addParticipantToEvent(eventId, participantId);
       
       if (!success) {
         res.status(409).json({
@@ -405,7 +409,7 @@ export class EventController {
   }
 
   // DELETE /api/events/:id/participants/:participantId - Remove participant from event
-  static async removeParticipantFromEvent(req: Request, res: Response): Promise<void> {
+  async removeParticipantFromEvent(req: Request, res: Response): Promise<void> {
     try {
       const { id: eventId, participantId } = req.params;
       
@@ -417,7 +421,7 @@ export class EventController {
         return;
       }
 
-      const success = await RelationshipService.removeParticipantFromEvent(eventId, participantId);
+      const success = await this.relationshipRepository.removeParticipantFromEvent(eventId, participantId);
       
       if (!success) {
         res.status(404).json({
@@ -442,7 +446,7 @@ export class EventController {
   }
 
   // GET /api/events/search?q=query - Search events
-  static async searchEvents(req: Request, res: Response): Promise<void> {
+  async searchEvents(req: Request, res: Response): Promise<void> {
     try {
       const { q, limit, offset } = req.query;
       
@@ -457,7 +461,7 @@ export class EventController {
       const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
       const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
 
-      const result = await EventService.searchEvents(q, parsedLimit, parsedOffset);
+      const result = await this.eventRepository.searchEvents(q, parsedLimit, parsedOffset);
       
       res.json({
         success: true,
@@ -480,7 +484,7 @@ export class EventController {
   }
 
   // GET /api/events/filter/date?start=date&end=date - Filter by date range
-  static async getEventsByDateRange(req: Request, res: Response): Promise<void> {
+  async getEventsByDateRange(req: Request, res: Response): Promise<void> {
     try {
       const { start, end, limit, offset } = req.query;
       
@@ -506,7 +510,7 @@ export class EventController {
       const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
       const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
 
-      const result = await EventService.getEventsByDateRange(startDate, endDate, parsedLimit, parsedOffset);
+      const result = await this.eventRepository.getEventsByDateRange(startDate, endDate, parsedLimit, parsedOffset);
       
       res.json({
         success: true,
@@ -529,7 +533,7 @@ export class EventController {
   }
 
   // GET /api/events/filter/location?location=location - Filter by location
-  static async getEventsByLocation(req: Request, res: Response): Promise<void> {
+  async getEventsByLocation(req: Request, res: Response): Promise<void> {
     try {
       const { location, limit, offset } = req.query;
       
@@ -544,7 +548,7 @@ export class EventController {
       const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
       const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
 
-      const result = await EventService.getEventsByLocation(location, parsedLimit, parsedOffset);
+      const result = await this.eventRepository.getEventsByLocation(location, parsedLimit, parsedOffset);
       
       res.json({
         success: true,
@@ -567,7 +571,7 @@ export class EventController {
   }
 
   // GET /api/events/filter/tags?tags=id1,id2,id3 - Filter by tags
-  static async getEventsByTags(req: Request, res: Response): Promise<void> {
+  async getEventsByTags(req: Request, res: Response): Promise<void> {
     try {
       const { tags, limit, offset } = req.query;
       
@@ -592,7 +596,7 @@ export class EventController {
       const parsedLimit = limit ? parseInt(limit as string, 10) : 50;
       const parsedOffset = offset ? parseInt(offset as string, 10) : 0;
 
-      const result = await EventService.getEventsByTags(tagIds, parsedLimit, parsedOffset);
+      const result = await this.eventRepository.getEventsByTags(tagIds, parsedLimit, parsedOffset);
       
       res.json({
         success: true,

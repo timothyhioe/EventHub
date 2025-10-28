@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { TagService } from '../services/tagService';
+import { TagRepository } from '../db/repository/tag.repository';
 import { CreateTagRequest, UpdateTagRequest } from '../types/tag';
 
 export class TagController {
+  constructor(private tagRepository: TagRepository) {}
   // GET /api/tags - Get all tags
-  static async getAllTags(req: Request, res: Response): Promise<void> {
+  async getAllTags(req: Request, res: Response): Promise<void> {
     try {
-      const tags = await TagService.getAllTags();
+      const tags = await this.tagRepository.getAllTags();
       
       res.json({
         success: true,
@@ -24,7 +25,7 @@ export class TagController {
   }
 
   // GET /api/tags/:id - Get single tag
-  static async getTagById(req: Request, res: Response): Promise<void> {
+  async getTagById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -36,7 +37,7 @@ export class TagController {
         return;
       }
 
-      const tag = await TagService.getTagById(id);
+      const tag = await this.tagRepository.getTagById(id);
       
       if (!tag) {
         res.status(404).json({
@@ -61,7 +62,7 @@ export class TagController {
   }
 
   // POST /api/tags - Create new tag
-  static async createTag(req: Request, res: Response): Promise<void> {
+  async createTag(req: Request, res: Response): Promise<void> {
     try {
       const tagData: CreateTagRequest = req.body;
       
@@ -85,7 +86,7 @@ export class TagController {
       }
 
       // Check if tag name already exists
-      const nameExists = await TagService.tagNameExists(tagData.name);
+      const nameExists = await this.tagRepository.tagNameExists(tagData.name);
       if (nameExists) {
         res.status(409).json({
           success: false,
@@ -94,7 +95,7 @@ export class TagController {
         return;
       }
 
-      const newTag = await TagService.createTag(tagData);
+      const newTag = await this.tagRepository.createTag(tagData);
       
       res.status(201).json({
         success: true,
@@ -112,7 +113,7 @@ export class TagController {
   }
 
   // PUT /api/tags/:id - Update tag
-  static async updateTag(req: Request, res: Response): Promise<void> {
+  async updateTag(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updateData: UpdateTagRequest = req.body;
@@ -139,7 +140,7 @@ export class TagController {
 
       // Check if tag name already exists (for updates)
       if (updateData.name) {
-        const nameExists = await TagService.tagNameExists(updateData.name, id);
+        const nameExists = await this.tagRepository.tagNameExists(updateData.name, id);
         if (nameExists) {
           res.status(409).json({
             success: false,
@@ -149,7 +150,7 @@ export class TagController {
         }
       }
 
-      const updatedTag = await TagService.updateTag(id, updateData);
+      const updatedTag = await this.tagRepository.updateTag(id, updateData);
       
       if (!updatedTag) {
         res.status(404).json({
@@ -175,7 +176,7 @@ export class TagController {
   }
 
   // DELETE /api/tags/:id - Delete tag
-  static async deleteTag(req: Request, res: Response): Promise<void> {
+  async deleteTag(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -187,7 +188,7 @@ export class TagController {
         return;
       }
 
-      const deleted = await TagService.deleteTag(id);
+      const deleted = await this.tagRepository.deleteTag(id);
       
       if (!deleted) {
         res.status(404).json({
@@ -212,7 +213,7 @@ export class TagController {
   }
 
   // GET /api/tags/:id/events - Get all events for a tag
-  static async getEventsForTag(req: Request, res: Response): Promise<void> {
+  async getEventsForTag(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       
@@ -225,7 +226,7 @@ export class TagController {
       }
 
       // Check if tag exists
-      const tag = await TagService.getTagById(id);
+      const tag = await this.tagRepository.getTagById(id);
       if (!tag) {
         res.status(404).json({
           success: false,
@@ -234,7 +235,7 @@ export class TagController {
         return;
       }
 
-      const events = await TagService.getEventsForTag(id);
+      const events = await this.tagRepository.getEventsForTag(id);
       
       res.json({
         success: true,
