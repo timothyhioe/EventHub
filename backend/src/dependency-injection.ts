@@ -1,17 +1,17 @@
-import { db } from '../db';
-import { EventRepository } from '../db/repository/event.repository';
-import { ParticipantRepository } from '../db/repository/participant.repository';
-import { TagRepository } from '../db/repository/tag.repository';
-import { RelationshipRepository } from '../db/repository/relationship.repository';
-import { EventController } from '../controllers/eventController';
-import { ParticipantController } from '../controllers/participantController';
-import { TagController } from '../controllers/tagController';
-import { EventRoutes } from '../routes/eventRoutes';
-import { ParticipantRoutes } from '../routes/participantRoutes';
-import { TagRoutes } from '../routes/tagRoutes';
-import { App } from '../app';
-import { Server } from '../server';
-import { ENV } from '../config/env.config';
+import { db } from './db';
+import { EventRepository } from './db/repository/event.repository';
+import { ParticipantRepository } from './db/repository/participant.repository';
+import { TagRepository } from './db/repository/tag.repository';
+import { RelationshipRepository } from './db/repository/relationship.repository';
+import { EventController } from './controllers/eventController';
+import { ParticipantController } from './controllers/participantController';
+import { TagController } from './controllers/tagController';
+import { EventRoutes } from './routes/eventRoutes';
+import { ParticipantRoutes } from './routes/participantRoutes';
+import { TagRoutes } from './routes/tagRoutes';
+import { App } from './app';
+import { Server } from './server';
+import { ENV } from './config/env.config';
 
 export const DI = {} as {
     app: App;

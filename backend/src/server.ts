@@ -1,14 +1,53 @@
+import * as http from 'http';
+
 import { App } from './app';
-import { ENV } from './config/env.config';
+import { EnvType } from './config/env.config';
 
 export class Server {
-  constructor(private app: App, private env: typeof ENV) {}
+  constructor(
+    private readonly _app: App,
+    private readonly _config: EnvType,
+  ) {}
 
-  start(): void {
-    this.app.app.listen(this.env.PORT, () => {
-      console.log(`Server running on port ${this.env.PORT}`);
-      console.log(`API available at http://localhost:${this.env.PORT}`);
-      console.log(`Database: ${this.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@')}`);
+  start = async () => {
+    const server = this._app.app.listen(this._config.PORT, () => {
+      console.info(`Listening to port ${this._config.PORT}`);
     });
-  }
+
+    this._handleUnexpectedErrors(server);
+    this._handleSigterm(server);
+  };
+
+  private _handleExit = (server: http.Server) => {
+    if (server) {
+      server.close(() => {
+        console.info('Server closed');
+        process.exit(1);
+      });
+    } else {
+      process.exit(1);
+    }
+  };
+
+  private _handleUnexpectedErrors = (server: http.Server) => {
+    /**
+     * @param error - an unexpected error to handle
+     */
+    const handler = (error: unknown) => {
+      console.error(error);
+      this._handleExit(server);
+    };
+
+    process.on('uncaughtException', handler);
+    process.on('unhandledRejection', handler);
+  };
+
+  private _handleSigterm = (server: http.Server) => {
+    process.on('SIGTERM', () => {
+      console.info('SIGTERM received');
+      if (server) {
+        server.close();
+      }
+    });
+  };
 }
