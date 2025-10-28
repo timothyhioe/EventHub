@@ -33,8 +33,19 @@ export class TagService {
 
   // Delete tag
   static async deleteTag(id: string): Promise<boolean> {
-    const result = await db.delete(tags).where(eq(tags.id, id));
-    return result.length > 0;
+    try {
+      // First check if the tag exists
+      const existingTag = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
+      if (existingTag.length === 0) {
+        return false; // Tag doesn't exist
+      }
+      
+      // Delete the tag
+      await db.delete(tags).where(eq(tags.id, id));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // Get all events for a specific tag

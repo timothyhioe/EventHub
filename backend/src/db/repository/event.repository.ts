@@ -149,8 +149,19 @@ export class EventRepository {
 
   // Delete event
   async deleteEvent(id: string): Promise<boolean> {
-    const result = await this.database.delete(events).where(eq(events.id, id));
-    return result.length > 0;
+    try {
+      // First check if the event exists
+      const existingEvent = await this.database.select().from(events).where(eq(events.id, id)).limit(1);
+      if (existingEvent.length === 0) {
+        return false; // Event doesn't exist
+      }
+      
+      // Delete the event
+      await this.database.delete(events).where(eq(events.id, id));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // Search events by title or description

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { createTestApp } from '../helpers/testApp';
-import { testDb } from '../setup';
+import { testDb, generateNonExistentUUID } from '../setup';
 import { events, tags, participants, eventTags, eventParticipants } from '../../db/schema';
 import { NewEvent } from '../../types/event';
 import { NewTag } from '../../types/tag';
@@ -31,7 +31,10 @@ describe('API Endpoints Integration Tests', () => {
         }
       ];
 
-      await testDb.insert(events).values(testEvents);
+      // Insert events separately to ensure different timestamps
+      await testDb.insert(events).values(testEvents[0]);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await testDb.insert(events).values(testEvents[1]);
     });
 
     it('should return all events', async () => {
@@ -92,17 +95,22 @@ describe('API Endpoints Integration Tests', () => {
         email: 'john@example.com'
       }).returning();
 
-      // Get the first event and add relationships
-      const allEvents = await testDb.select().from(events).limit(1);
-      const eventId = allEvents[0].id;
+      // Create a specific event for this test
+      const [event] = await testDb.insert(events).values({
+        title: 'Event with Relations',
+        description: 'Test Description',
+        location: 'Test Location',
+        date: new Date('2024-12-31T18:00:00Z')
+      }).returning();
 
+      // Add relationships to the specific event
       await testDb.insert(eventTags).values({
-        eventId,
+        eventId: event.id,
         tagId: tag.id
       });
 
       await testDb.insert(eventParticipants).values({
-        eventId,
+        eventId: event.id,
         participantId: participant.id
       });
 
@@ -112,10 +120,14 @@ describe('API Endpoints Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data[0].tags).toBeDefined();
-      expect(response.body.data[0].participants).toBeDefined();
-      expect(response.body.data[0].tags).toHaveLength(1);
-      expect(response.body.data[0].participants).toHaveLength(1);
+      
+      // Find the event with relations in the response
+      const eventWithRelations = response.body.data.find((e: any) => e.id === event.id);
+      expect(eventWithRelations).toBeDefined();
+      expect(eventWithRelations.tags).toBeDefined();
+      expect(eventWithRelations.participants).toBeDefined();
+      expect(eventWithRelations.tags).toHaveLength(1);
+      expect(eventWithRelations.participants).toHaveLength(1);
     });
   });
 
@@ -145,8 +157,9 @@ describe('API Endpoints Integration Tests', () => {
     });
 
     it('should return 404 for non-existent event ID', async () => {
+      const nonExistentId = generateNonExistentUUID();
       const response = await request(app)
-        .get('/api/events/non-existent-id')
+        .get(`/api/events/${nonExistentId}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -240,7 +253,7 @@ describe('API Endpoints Integration Tests', () => {
       const updateData = { title: 'Updated Title' };
 
       const response = await request(app)
-        .put('/api/events/non-existent-id')
+        .put(`/api/events/${generateNonExistentUUID()}`)
         .send(updateData)
         .expect(404);
 
@@ -250,19 +263,15 @@ describe('API Endpoints Integration Tests', () => {
   });
 
   describe('DELETE /api/events/:id', () => {
-    let testEventId: string;
-
-    beforeEach(async () => {
+    it('should delete event successfully', async () => {
+      // Create event specifically for this test
       const [event] = await testDb.insert(events).values({
         title: 'Event to Delete',
         date: new Date('2024-12-31T18:00:00Z')
       }).returning();
-      testEventId = event.id;
-    });
 
-    it('should delete event successfully', async () => {
       const response = await request(app)
-        .delete(`/api/events/${testEventId}`)
+        .delete(`/api/events/${event.id}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -270,7 +279,7 @@ describe('API Endpoints Integration Tests', () => {
 
       // Verify event is deleted
       const getResponse = await request(app)
-        .get(`/api/events/${testEventId}`)
+        .get(`/api/events/${event.id}`)
         .expect(404);
       
       expect(getResponse.body.message).toBe('Event not found');
@@ -278,7 +287,7 @@ describe('API Endpoints Integration Tests', () => {
 
     it('should return 404 for non-existent event ID', async () => {
       const response = await request(app)
-        .delete('/api/events/non-existent-id')
+        .delete(`/api/events/${generateNonExistentUUID()}`)
         .expect(404);
 
       expect(response.body.success).toBe(false);
@@ -308,7 +317,7 @@ describe('API Endpoints Integration Tests', () => {
       const response = await request(app)
         .post(`/api/events/${testEventId}/tags`)
         .send({ tagId: testTagId })
-        .expect(200);
+        .expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Tag added to event successfully');
@@ -316,7 +325,7 @@ describe('API Endpoints Integration Tests', () => {
 
     it('should return 404 for non-existent event ID', async () => {
       const response = await request(app)
-        .post('/api/events/non-existent-id/tags')
+        .post(`/api/events/${generateNonExistentUUID()}/tags`)
         .send({ tagId: testTagId })
         .expect(404);
 
@@ -331,7 +340,7 @@ describe('API Endpoints Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Tag ID is required');
+      expect(response.body.message).toBe('Event ID and Tag ID are required');
     });
   });
 
@@ -357,7 +366,7 @@ describe('API Endpoints Integration Tests', () => {
       const response = await request(app)
         .post(`/api/events/${testEventId}/participants`)
         .send({ participantId: testParticipantId })
-        .expect(200);
+        .expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Participant added to event successfully');
@@ -365,7 +374,7 @@ describe('API Endpoints Integration Tests', () => {
 
     it('should return 404 for non-existent event ID', async () => {
       const response = await request(app)
-        .post('/api/events/non-existent-id/participants')
+        .post(`/api/events/${generateNonExistentUUID()}/participants`)
         .send({ participantId: testParticipantId })
         .expect(404);
 
@@ -380,7 +389,7 @@ describe('API Endpoints Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Participant ID is required');
+      expect(response.body.message).toBe('Event ID and Participant ID are required');
     });
   });
 

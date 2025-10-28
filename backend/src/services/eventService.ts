@@ -153,8 +153,19 @@ export class EventService {
 
   // Delete event
   static async deleteEvent(id: string): Promise<boolean> {
-    const result = await db.delete(events).where(eq(events.id, id));
-    return result.length > 0;
+    try {
+      // First check if the event exists
+      const existingEvent = await db.select().from(events).where(eq(events.id, id)).limit(1);
+      if (existingEvent.length === 0) {
+        return false; // Event doesn't exist
+      }
+      
+      // Delete the event
+      await db.delete(events).where(eq(events.id, id));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // Enhanced search method

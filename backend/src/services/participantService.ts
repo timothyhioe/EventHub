@@ -33,8 +33,19 @@ export class ParticipantService {
 
   // Delete participant
   static async deleteParticipant(id: string): Promise<boolean> {
-    const result = await db.delete(participants).where(eq(participants.id, id));
-    return result.length > 0;
+    try {
+      // First check if the participant exists
+      const existingParticipant = await db.select().from(participants).where(eq(participants.id, id)).limit(1);
+      if (existingParticipant.length === 0) {
+        return false; // Participant doesn't exist
+      }
+      
+      // Delete the participant
+      await db.delete(participants).where(eq(participants.id, id));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // Get all events for a specific participant

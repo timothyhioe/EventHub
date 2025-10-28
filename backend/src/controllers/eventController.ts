@@ -4,6 +4,7 @@ import { RelationshipRepository } from '../db/repository/relationship.repository
 import { CreateEventRequest, UpdateEventRequest } from '../types/event';
 import { AddTagToEventRequest } from '../types/tag';
 import { AddParticipantToEventRequest } from '../types/participant';
+import { isValidUUID } from '../utils/uuid';
 
 export class EventController {
   constructor(
@@ -79,7 +80,7 @@ export class EventController {
 
       const result = await this.eventRepository.getAllEventsWithFilters(filters);
       
-      res.json({
+      res.status(200).json({
         success: true,
         data: result.events,
         pagination: {
@@ -112,6 +113,15 @@ export class EventController {
         return;
       }
 
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid event ID format'
+        });
+        return;
+      }
+
       const event = await this.eventRepository.getEventById(id);
       
       if (!event) {
@@ -122,7 +132,7 @@ export class EventController {
         return;
       }
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: event
       });
@@ -187,6 +197,15 @@ export class EventController {
         return;
       }
 
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid event ID format'
+        });
+        return;
+      }
+
       // Convert date string to Date object if provided
       const processedUpdateData: any = { ...updateData };
       if (processedUpdateData.date) {
@@ -203,7 +222,7 @@ export class EventController {
         return;
       }
 
-      res.json({
+      res.status(200).json({
         success: true,
         message: 'Event updated successfully',
         data: updatedEvent
@@ -231,6 +250,15 @@ export class EventController {
         return;
       }
 
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid event ID format'
+        });
+        return;
+      }
+
       const deleted = await this.eventRepository.deleteEvent(id);
       
       if (!deleted) {
@@ -241,7 +269,7 @@ export class EventController {
         return;
       }
 
-      res.json({
+      res.status(200).json({
         success: true,
         message: 'Event deleted successfully'
       });
@@ -265,6 +293,23 @@ export class EventController {
         res.status(400).json({
           success: false,
           message: 'Event ID and Tag ID are required'
+        });
+        return;
+      }
+
+      // Validate UUID formats
+      if (!isValidUUID(eventId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid event ID format'
+        });
+        return;
+      }
+
+      if (!isValidUUID(tagId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid tag ID format'
         });
         return;
       }
@@ -360,6 +405,23 @@ export class EventController {
         res.status(400).json({
           success: false,
           message: 'Event ID and Participant ID are required'
+        });
+        return;
+      }
+
+      // Validate UUID formats
+      if (!isValidUUID(eventId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid event ID format'
+        });
+        return;
+      }
+
+      if (!isValidUUID(participantId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid participant ID format'
         });
         return;
       }

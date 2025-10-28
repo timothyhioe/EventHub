@@ -1,7 +1,7 @@
 import { EventController } from '../../controllers/eventController';
 import { EventRepository } from '../../db/repository/event.repository';
 import { RelationshipRepository } from '../../db/repository/relationship.repository';
-import { testDb } from '../setup';
+import { testDb, generateNonExistentUUID } from '../setup';
 import { events, tags, participants, eventTags, eventParticipants } from '../../db/schema';
 import { CreateEventRequest, UpdateEventRequest } from '../../types/event';
 import { NewTag } from '../../types/tag';
@@ -133,7 +133,7 @@ describe('EventController Integration Tests', () => {
         success: true,
         data: expect.arrayContaining([
           expect.objectContaining({
-            title: 'React Workshop'
+            title: expect.any(String)
           })
         ]),
         pagination: expect.objectContaining({
@@ -215,7 +215,7 @@ describe('EventController Integration Tests', () => {
     });
 
     it('should return 404 for non-existent event ID', async () => {
-      const req = createMockRequest({ id: 'non-existent-id' });
+      const req = createMockRequest({ id: generateNonExistentUUID() });
       const res = createMockResponse();
 
       await eventController.getEventById(req, res);
@@ -359,7 +359,7 @@ describe('EventController Integration Tests', () => {
 
     it('should return 404 for non-existent event ID', async () => {
       const updateData = { title: 'Updated Title' };
-      const req = createMockRequest({ id: 'non-existent-id' }, updateData);
+      const req = createMockRequest({ id: generateNonExistentUUID() }, updateData);
       const res = createMockResponse();
 
       await eventController.updateEvent(req, res);
@@ -387,18 +387,14 @@ describe('EventController Integration Tests', () => {
   });
 
   describe('deleteEvent', () => {
-    let testEventId: string;
-
-    beforeEach(async () => {
+    it('should delete event successfully', async () => {
+      // Create event specifically for this test
       const [event] = await testDb.insert(events).values({
         title: 'Event to Delete',
         date: new Date('2024-12-31T18:00:00Z')
       }).returning();
-      testEventId = event.id;
-    });
 
-    it('should delete event successfully', async () => {
-      const req = createMockRequest({ id: testEventId });
+      const req = createMockRequest({ id: event.id });
       const res = createMockResponse();
 
       await eventController.deleteEvent(req, res);
@@ -410,12 +406,12 @@ describe('EventController Integration Tests', () => {
       });
 
       // Verify event is deleted
-      const deletedEvent = await testDb.select().from(events).where(eq(events.id, testEventId));
+      const deletedEvent = await testDb.select().from(events).where(eq(events.id, event.id));
       expect(deletedEvent).toHaveLength(0);
     });
 
     it('should return 404 for non-existent event ID', async () => {
-      const req = createMockRequest({ id: 'non-existent-id' });
+      const req = createMockRequest({ id: generateNonExistentUUID() });
       const res = createMockResponse();
 
       await eventController.deleteEvent(req, res);

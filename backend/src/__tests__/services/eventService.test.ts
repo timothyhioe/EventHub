@@ -1,5 +1,5 @@
 import { EventService } from '../../services/eventService';
-import { testDb } from '../setup';
+import { testDb, generateNonExistentUUID } from '../setup';
 import { events, tags, participants, eventTags, eventParticipants } from '../../db/schema';
 import { NewEvent } from '../../types/event';
 
@@ -60,7 +60,7 @@ describe('EventService', () => {
     });
 
     it('should return null for non-existent event ID', async () => {
-      const result = await EventService.getEventById('non-existent-id');
+      const result = await EventService.getEventById(generateNonExistentUUID());
       expect(result).toBeNull();
     });
   });
@@ -77,7 +77,10 @@ describe('EventService', () => {
         date: new Date('2024-12-30T18:00:00Z')
       };
 
-      await testDb.insert(events).values([eventData1, eventData2]);
+      // Insert events separately to ensure different timestamps
+      await testDb.insert(events).values(eventData1);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await testDb.insert(events).values(eventData2);
 
       const result = await EventService.getAllEvents();
 
@@ -233,7 +236,7 @@ describe('EventService', () => {
     });
 
     it('should return null for non-existent event ID', async () => {
-      const result = await EventService.updateEvent('non-existent-id', {
+      const result = await EventService.updateEvent(generateNonExistentUUID(), {
         title: 'Updated Title'
       });
       expect(result).toBeNull();
@@ -259,7 +262,7 @@ describe('EventService', () => {
     });
 
     it('should return false for non-existent event ID', async () => {
-      const result = await EventService.deleteEvent('non-existent-id');
+      const result = await EventService.deleteEvent(generateNonExistentUUID());
       expect(result).toBe(false);
     });
   });
