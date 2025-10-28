@@ -48,9 +48,9 @@ A modern full-stack web application for managing events, participants, and tags.
 
 4. **Set up the database:**
    ```bash
-   # In a new terminal, push the database schema
+   # Apply database migrations
    cd backend
-   npm run db:push
+   npm run db:migrate
    ```
 
 5. **Access the application:**
@@ -69,11 +69,55 @@ A modern full-stack web application for managing events, participants, and tags.
 
 ## Testing
 
+### Backend Testing
+
+The backend includes comprehensive testing with Jest and Supertest:
+
 ```bash
 # Run backend tests
 cd backend && npm test
 
-# Run frontend tests
+# Run tests with coverage
+cd backend && npm run test:coverage
+
+# Run tests in watch mode
+cd backend && npm run test:watch
+```
+
+**Test Coverage:**
+- ✅ Unit tests for all services (EventService, ParticipantService, TagService)
+- ✅ Integration tests for controllers
+- ✅ API endpoint tests with Supertest
+- ✅ Test database setup with proper isolation
+- ✅ 25+ tests currently passing
+
+**Test Structure:**
+```
+backend/src/__tests__/
+├── setup.ts                    # Test database configuration
+├── services/                   # Unit tests for services
+│   ├── eventService.test.ts
+│   ├── participantService.test.ts
+│   └── tagService.test.ts
+├── controllers/                # Integration tests for controllers
+│   └── eventController.test.ts
+├── routes/                     # API endpoint tests
+│   └── api.test.ts
+└── helpers/
+    └── testApp.ts             # Test app setup helper
+```
+
+**Test Database:**
+- Separate test database (`event_management_test`)
+- Automatic cleanup between tests
+- Proper schema setup
+
+### Frontend Testing
+
+Frontend testing setup is ready for implementation:
+
+```bash
+# Run frontend tests (when implemented)
 cd frontend && npm test
 ```
 
@@ -92,12 +136,29 @@ npm run dev
 ```
 
 ### Database Management
+
+**Migration Commands:**
 ```bash
 cd backend
-npm run db:generate  # Generate migration files
-npm run db:push      # Push schema to database
-npm run db:studio    # Open Drizzle Studio (GUI)
+npm run db:generate     # Generate migration files from schema changes
+npm run db:migrate      # Apply migrations to main database
+npm run db:migrate:test # Apply migrations to test database
+npm run db:push         # Push schema directly (for development)
+npm run db:studio       # Open Drizzle Studio (GUI)
 ```
+
+**Database Reset Commands:**
+```bash
+npm run db:reset        # Reset main database (drop + migrate)
+npm run db:reset:test   # Reset test database (drop + migrate)
+npm run db:drop         # Drop all tables in main database
+```
+
+**Migration Workflow:**
+1. Make changes to `src/db/schema.ts`
+2. Run `npm run db:generate` to create migration files
+3. Run `npm run db:migrate` to apply changes to database
+4. For tests: `npm run db:migrate:test`
 
 ### Frontend Development
 ```bash

@@ -7,11 +7,18 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "nodemon src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:test": "TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5433/event_management_test drizzle-kit migrate --config=drizzle.config.test.ts",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "npm run db:drop && npm run db:migrate",
+    "db:drop": "docker exec fwe-postgres psql -U postgres -d event_management -c \"DROP SCHEMA public CASCADE; CREATE SCHEMA public;\"",
+    "db:reset:test": "docker exec fwe-postgres psql -U postgres -d event_management_test -c \"DROP SCHEMA public CASCADE; CREATE SCHEMA public;\" && npm run db:migrate:test"
   },
   "keywords": [],
   "author": "",
@@ -29,10 +36,15 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jest": "^29.5.8",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.9.1",
+    "@types/supertest": "^2.0.16",
     "drizzle-kit": "^0.31.5",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.10",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
