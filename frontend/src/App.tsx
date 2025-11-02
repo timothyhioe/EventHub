@@ -1,25 +1,98 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { MantineProvider, AppShell, Burger, Group, NavLink } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { Notifications } from '@mantine/notifications';
+import { Calendar, Users, Tag, Home } from 'lucide-react';
+import { EventsListPage } from './pages/EventsListPage';
+import { EventDetailPage } from './pages/EventDetailPage';
+import { EventFormPage } from './pages/EventFormPage';
+import { ParticipantsListPage } from './pages/ParticipantsListPage';
+import { ParticipantDetailPage } from './pages/ParticipantDetailPage';
+import { TagsManagementPage } from './pages/TagsManagementPage';
+
+function AppLayout() {
+  const [opened, { toggle, close }] = useDisclosure();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  return (
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 250,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Calendar size={28} />
+            <span style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+              EventHub
+            </span>
+          </Group>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        <NavLink
+          label="Events"
+          leftSection={<Home size={20} />}
+          active={location.pathname.startsWith('/events')}
+          onClick={() => {
+            navigate('/events');
+            close();
+          }}
+        />
+        <NavLink
+          label="Participants"
+          leftSection={<Users size={20} />}
+          active={location.pathname.startsWith('/participants')}
+          onClick={() => {
+            navigate('/participants');
+            close();
+          }}
+        />
+        <NavLink
+          label="Tags"
+          leftSection={<Tag size={20} />}
+          active={location.pathname.startsWith('/tags')}
+          onClick={() => {
+            navigate('/tags');
+            close();
+          }}
+        />
+      </AppShell.Navbar>
+
+      <AppShell.Main>
+        <Routes>
+          <Route path="/" element={<Navigate to="/events" replace />} />
+          <Route path="/events" element={<EventsListPage />} />
+          <Route path="/events/new" element={<EventFormPage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/events/:id/edit" element={<EventFormPage />} />
+          <Route path="/participants" element={<ParticipantsListPage />} />
+          <Route path="/participants/:id" element={<ParticipantDetailPage />} />
+          <Route path="/tags" element={<TagsManagementPage />} />
+          <Route path="*" element={<Navigate to="/events" replace />} />
+        </Routes>
+      </AppShell.Main>
+    </AppShell>
+  );
+}
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <header className="App-header">
-          <h1>Event Management System</h1>
-        </header>
-        <main>
-          <Routes>
-            <Route path="/" element={
-              <div>
-                <h2>Welcome to Event Management System</h2>
-              </div>
-            } />
-          </Routes>
-        </main>a
-      </div>
-    </Router>
-  )
+    <MantineProvider defaultColorScheme="light">
+      <Notifications position="top-right" />
+      <Router>
+        <AppLayout />
+      </Router>
+    </MantineProvider>
+  );
 }
 
-export default App
+export default App;

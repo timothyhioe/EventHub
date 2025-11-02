@@ -1,5 +1,4 @@
-# Event Management System
-
+# EventHub
 A modern full-stack web application for managing events, participants, and tags.
 
 ## Features
