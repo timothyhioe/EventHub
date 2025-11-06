@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, primaryKey, numeric } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Events table
@@ -11,6 +11,8 @@ export const events = pgTable('events', {
   imageUrl: varchar('image_url', { length: 500 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  latitude: numeric('latitude', { precision: 10, scale: 7 }),
+longitude: numeric('longitude', { precision: 10, scale: 7 }), 
 });
 
 // Tags table

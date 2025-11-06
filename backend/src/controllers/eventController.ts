@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { EventRepository } from '../db/repository/event.repository';
 import { RelationshipRepository } from '../db/repository/relationship.repository';
-import { CreateEventRequest, UpdateEventRequest } from '../types/event';
+import { CreateEventRequest, UpdateEventRequest, NewEvent, UpdateEvent } from '../types/event';
 import { AddTagToEventRequest } from '../types/tag';
 import { AddParticipantToEventRequest } from '../types/participant';
 import { isValidUUID } from '../utils/uuid';
+import { GeocodingService } from '../services/geocordingService';
 
 export class EventController {
   constructor(
@@ -160,11 +161,23 @@ export class EventController {
         return;
       }
 
-      // Convert date string to Date object
-      const eventToCreate = {
-        ...eventData,
-        date: new Date(eventData.date)
+      // Convert date string to Date object and prepare event data
+      const eventToCreate: NewEvent = {
+        title: eventData.title,
+        description: eventData.description || null,
+        location: eventData.location || null,
+        date: new Date(eventData.date),
+        imageUrl: eventData.imageUrl || null,
       };
+
+      // Geocode address if provided
+      if (eventData.location) {
+        const coordinates = await GeocodingService.geocodeAddress(eventData.location);
+        if (coordinates) {
+          eventToCreate.latitude = coordinates.latitude.toString();
+          eventToCreate.longitude = coordinates.longitude.toString();
+        }
+      }
 
       const newEvent = await this.eventRepository.createEvent(eventToCreate);
       
@@ -206,10 +219,28 @@ export class EventController {
         return;
       }
 
-      // Convert date string to Date object if provided
-      const processedUpdateData: any = { ...updateData };
-      if (processedUpdateData.date) {
-        processedUpdateData.date = new Date(processedUpdateData.date);
+      // Prepare update data with proper types
+      const processedUpdateData: UpdateEvent = {};
+      
+      if (updateData.title !== undefined) processedUpdateData.title = updateData.title;
+      if (updateData.description !== undefined) processedUpdateData.description = updateData.description || null;
+      if (updateData.location !== undefined) processedUpdateData.location = updateData.location || null;
+      if (updateData.imageUrl !== undefined) processedUpdateData.imageUrl = updateData.imageUrl || null;
+      if (updateData.date) {
+        processedUpdateData.date = new Date(updateData.date);
+      }
+
+      // Geocode address if location is being updated
+      if (updateData.location) {
+        const coordinates = await GeocodingService.geocodeAddress(updateData.location);
+        if (coordinates) {
+          processedUpdateData.latitude = coordinates.latitude.toString();
+          processedUpdateData.longitude = coordinates.longitude.toString();
+        } else {
+          // If geocoding fails and location changed, clear coordinates
+          processedUpdateData.latitude = null;
+          processedUpdateData.longitude = null;
+        }
       }
 
       const updatedEvent = await this.eventRepository.updateEvent(id, processedUpdateData);
