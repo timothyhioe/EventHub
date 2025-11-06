@@ -34,17 +34,16 @@ export class TagService {
   // Delete tag
   static async deleteTag(id: string): Promise<boolean> {
     try {
-      // First check if the tag exists
-      const existingTag = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
-      if (existingTag.length === 0) {
-        return false; // Tag doesn't exist
-      }
+      // Delete and return the deleted row(s) to verify deletion
+      const result = await db
+        .delete(tags)
+        .where(eq(tags.id, id))
+        .returning();
       
-      // Delete the tag
-      await db.delete(tags).where(eq(tags.id, id));
-      return true;
+      // If result has items, deletion was successful
+      return result.length > 0;
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 

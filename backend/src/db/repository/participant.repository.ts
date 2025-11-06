@@ -34,8 +34,19 @@ export class ParticipantRepository {
 
   // Delete participant
   async deleteParticipant(id: string): Promise<boolean> {
-    const result = await this.database.delete(participants).where(eq(participants.id, id));
-    return result.length > 0;
+    try {
+      // Delete and return the deleted row(s) to verify deletion
+      const result = await this.database
+        .delete(participants)
+        .where(eq(participants.id, id))
+        .returning();
+      
+      // If result has items, deletion was successful
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting participant:', error);
+      throw error;
+    }
   }
 
   // Get all events for a specific participant
