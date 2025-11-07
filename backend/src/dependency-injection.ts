@@ -12,6 +12,8 @@ import { TagRoutes } from './routes/tagRoutes';
 import { App } from './app';
 import { Server } from './server';
 import { ENV } from './config/env.config';
+import { GeocodingController } from './controllers/geocodingController';
+import { GeocodingRoutes } from './routes/geocodingRoutes';
 
 export const DI = {} as {
     app: App;
@@ -27,11 +29,13 @@ export const DI = {} as {
         eventController: EventController;
         participantController: ParticipantController;
         tagController: TagController;
+        geocodingController: GeocodingController;
     };
     routes: {
         eventRoutes: EventRoutes;
         participantRoutes: ParticipantRoutes;
         tagRoutes: TagRoutes;
+        geocodingRoutes: GeocodingRoutes;
     };
 }
 
@@ -56,12 +60,14 @@ export function initializeDependencyInjection() {
         tagController: new TagController(
             DI.repositories.tagRepository
         ),
+        geocodingController: new GeocodingController(),
     };
 
     DI.routes = {
         eventRoutes: new EventRoutes(DI.controllers.eventController),
         participantRoutes: new ParticipantRoutes(DI.controllers.participantController),
         tagRoutes: new TagRoutes(DI.controllers.tagController),
+        geocodingRoutes: new GeocodingRoutes(DI.controllers.geocodingController),
     };
 
     DI.app = new App(DI.routes);

@@ -199,3 +199,37 @@ export const tagsApi = {
   },
 };
 
+export interface LocationSuggestion {
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  address: Record<string, string>;
+}
+
+export const geocodingApi = {
+  async searchLocations(query: string): Promise<LocationSuggestion[]> {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/geocoding/search?q=${encodeURIComponent(query)}`,
+        { cache: 'no-store' }
+      );
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to search locations:', error);
+      return [];
+    }
+  }
+};

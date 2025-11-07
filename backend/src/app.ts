@@ -13,6 +13,7 @@ export class App {
     eventRoutes: any;
     participantRoutes: any;
     tagRoutes: any;
+    geocodingRoutes: any;
   }) {
     this.app = express();
     this.setupMiddleware();
@@ -31,11 +32,13 @@ export class App {
     eventRoutes: any;
     participantRoutes: any;
     tagRoutes: any;
+    geocodingRoutes: any;
   }): void {
     // Routes
     this.app.use('/api/events', routes.eventRoutes.getRoutes());
     this.app.use('/api/tags', routes.tagRoutes.getRoutes());
     this.app.use('/api/participants', routes.participantRoutes.getRoutes());
+    this.app.use('/api/geocoding', routes.geocodingRoutes.getRoutes());
 
     this.app.get('/', (req, res) => {
       res.json({ 
