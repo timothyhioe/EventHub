@@ -2,13 +2,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavig
 import { MantineProvider, AppShell, Burger, Group, NavLink } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
-import { Calendar, Users, Tag, Home } from 'lucide-react';
+import { Calendar, Users, Tag, Home, MapPin } from 'lucide-react';
 import { EventsListPage } from './pages/EventsListPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import { EventFormPage } from './pages/EventFormPage';
 import { ParticipantsListPage } from './pages/ParticipantsListPage';
 import { ParticipantDetailPage } from './pages/ParticipantDetailPage';
 import { TagsManagementPage } from './pages/TagsManagementPage';
+import { EventsMapPage } from './pages/EventsMapPage';
 
 function AppLayout() {
   const [opened, { toggle, close }] = useDisclosure();
@@ -65,6 +66,15 @@ function AppLayout() {
             close();
           }}
         />
+        <NavLink
+          label="Map"
+          leftSection={<MapPin size={20} />}
+          active={location.pathname.startsWith('/events/map')}
+          onClick={() => {
+            navigate('/events/map');
+            close();
+          }}
+        />
       </AppShell.Navbar>
 
       <AppShell.Main>
@@ -74,6 +84,7 @@ function AppLayout() {
           <Route path="/events/new" element={<EventFormPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/:id/edit" element={<EventFormPage />} />
+          <Route path="/events/map" element={<EventsMapPage />} />
           <Route path="/participants" element={<ParticipantsListPage />} />
           <Route path="/participants/:id" element={<ParticipantDetailPage />} />
           <Route path="/tags" element={<TagsManagementPage />} />

@@ -7,6 +7,12 @@ A modern full-stack web application for managing events, participants, and tags.
 - **Participant Management**: Manage event participants
 - **Tag System**: Organize events with color-coded tags
 - **Search & Filter**: Find events by various criteria
+- **Geocoding & Maps (Freestyle Feature)**: 
+  - Automatic address-to-coordinates conversion using Nominatim
+  - Location autocomplete with real-time suggestions
+  - Interactive map view showing all events
+  - Mini-map preview when creating/editing events
+  - Instant directions to events via Google Maps or OpenStreetMap
 - **Responsive Design**: Works on desktop, tablet, and mobile
 
 ## Tech Stack
@@ -16,11 +22,14 @@ A modern full-stack web application for managing events, participants, and tags.
 - Express.js
 - PostgreSQL
 - Drizzle ORM
+- Nominatim Geocoding API integration
 - Docker
 
 ### Frontend
 - React with TypeScript
-- Modern UI components
+- Mantine UI components
+- Leaflet & React-Leaflet for interactive maps
+- Location autocomplete with debouncing
 - Responsive design
 
 ## Prerequisites
@@ -47,9 +56,8 @@ A modern full-stack web application for managing events, participants, and tags.
 
 4. **Set up the database:**
    ```bash
-   # Apply database migrations
-   cd backend
-   npm run db:migrate
+   # Apply database migrations (run inside backend container or locally)
+   docker compose exec backend npm run db:migrate
    ```
 
 5. **Access the application:**
@@ -169,10 +177,59 @@ npm run dev
 ## Database Schema
 
 The database includes the following tables:
-- **events** - Event information (title, description, location, date, image)
+- **events** - Event information (title, description, location, date, image, latitude, longitude)
 - **tags** - Color-coded tags for organizing events
 - **participants** - People who can attend events
 - **event_tags** - Many-to-many relationship between events and tags
 - **event_participants** - Many-to-many relationship between events and participants
 
+**Geocoding Fields:**
+- `latitude` (numeric) - Automatically populated from location address
+- `longitude` (numeric) - Automatically populated from location address
+
 For detailed schema information, see `backend/src/db/schema.ts`
+
+## Geocoding & Mapping Features
+
+### Automatic Geocoding
+When creating or updating an event with a location, the system automatically:
+1. Converts the address to coordinates using Nominatim API
+2. Stores latitude and longitude in the database
+3. Enables map-based features
+
+### Location Autocomplete
+The event form includes intelligent location search:
+- Mini-map preview of selected location
+
+### Interactive Maps
+- **Map View Page** (`/events/map`): See all events plotted on an interactive map
+- **Event Details**: Clickable markers with event information
+- **Get Directions**: One-click routing via Google Maps or OpenStreetMap
+- **Responsive**: Maps adapt to all screen sizes
+
+### API Endpoints
+
+**Geocoding Search**
+```
+GET /api/geocoding/search?q={query}
+```
+Returns location suggestions with coordinates.
+
+Example response:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "displayName": "New York, United States",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "address": {
+        "city": "New York",
+        "state": "New York",
+        "country": "United States"
+      }
+    }
+  ]
+}
+````
