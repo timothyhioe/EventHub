@@ -6,6 +6,7 @@ import { AddTagToEventRequest } from '../types/tag';
 import { AddParticipantToEventRequest } from '../types/participant';
 import { isValidUUID } from '../utils/uuid';
 import { GeocodingService } from '../services/geocordingService';
+import { ImageService } from '../services/imageService';
 
 export class EventController {
   constructor(
@@ -176,6 +177,15 @@ export class EventController {
         if (coordinates) {
           eventToCreate.latitude = coordinates.latitude.toString();
           eventToCreate.longitude = coordinates.longitude.toString();
+        }
+      }
+
+      //freestyle feature -> unsplash image generation
+      if (!eventData.imageUrl) {
+        const keyword = eventData.title
+        const fetchedImage = await ImageService.fetchImageForEvent(keyword);
+        if (fetchedImage) {
+          eventToCreate.imageUrl = fetchedImage;
         }
       }
 
