@@ -133,7 +133,7 @@ function App() {
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
       }}
     >
-      <Notifications position="top-right" />
+      <Notifications position="top-right" zIndex={2200} />
       <Router>
         <AppLayout />
       </Router>
