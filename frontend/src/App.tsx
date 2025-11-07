@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { MantineProvider, AppShell, Burger, Group, NavLink } from '@mantine/core';
+import { ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
-import { Calendar, Users, Tag, Home, MapPin } from 'lucide-react';
+import { Calendar, Users, Tag, Home, MapPin, Sun, Moon } from 'lucide-react';
 import { EventsListPage } from './pages/EventsListPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import { EventFormPage } from './pages/EventFormPage';
@@ -10,6 +11,32 @@ import { ParticipantsListPage } from './pages/ParticipantsListPage';
 import { ParticipantDetailPage } from './pages/ParticipantDetailPage';
 import { TagsManagementPage } from './pages/TagsManagementPage';
 import { EventsMapPage } from './pages/EventsMapPage';
+
+function ColorSchemeToggle() {
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', {
+    getInitialValueInEffect: true,
+  });
+
+  return (
+    <ActionIcon
+      variant="subtle"
+      size="lg"
+      radius="xl"
+      color={computedColorScheme === 'dark' ? 'yellow' : 'blue'}
+      onClick={() =>
+        setColorScheme(computedColorScheme === 'dark' ? 'light' : 'dark')
+      }
+      aria-label="Toggle color scheme"
+    >
+      {computedColorScheme === 'dark' ? (
+        <Sun size={18} strokeWidth={1.75} />
+      ) : (
+        <Moon size={18} strokeWidth={1.75} />
+      )}
+    </ActionIcon>
+  );
+}
 
 function AppLayout() {
   const [opened, { toggle, close }] = useDisclosure();
@@ -35,6 +62,7 @@ function AppLayout() {
               EventHub
             </span>
           </Group>
+          <ColorSchemeToggle />
         </Group>
       </AppShell.Header>
 
@@ -97,7 +125,14 @@ function AppLayout() {
 
 function App() {
   return (
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider
+      defaultColorScheme="light"
+      theme={{
+        primaryColor: 'blue',
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+      }}
+    >
       <Notifications position="top-right" />
       <Router>
         <AppLayout />
