@@ -7,12 +7,15 @@ A modern full-stack web application for managing events, participants, and tags.
 - **Participant Management**: Manage event participants
 - **Tag System**: Organize events with color-coded tags
 - **Search & Filter**: Find events by various criteria
-- **Geocoding & Maps (Freestyle Feature)**: 
+- **Geocoding & Maps (Freestyle Feature 1)**: 
   - Automatic address-to-coordinates conversion using Nominatim
   - Location autocomplete with real-time suggestions
   - Interactive map view showing all events
   - Mini-map preview when creating/editing events
   - Instant directions to events via Google Maps or OpenStreetMap
+- **Smart Event Imagery (Freestyle Feature 2)**:
+  - Automatically fills in event images from Unsplash when no URL is provided
+  - Uses event title keywords for relevant photography
 - **Responsive Design**: Works on desktop, tablet, and mobile
 
 ## Tech Stack
@@ -23,6 +26,7 @@ A modern full-stack web application for managing events, participants, and tags.
 - PostgreSQL
 - Drizzle ORM
 - Nominatim Geocoding API integration
+- Unsplash Image API integration
 - Docker
 
 ### Frontend
@@ -47,7 +51,6 @@ A modern full-stack web application for managing events, participants, and tags.
    cd backend
    cp env.example .env
    cd ..
-   ```
 
 3. **Run with Docker:**
    ```bash
@@ -206,6 +209,12 @@ The event form includes intelligent location search:
 - **Event Details**: Clickable markers with event information
 - **Get Directions**: One-click routing via Google Maps or OpenStreetMap
 - **Responsive**: Maps adapt to all screen sizes
+
+## Smart Event Imagery
+
+- When an event is created without an `imageUrl`, the backend automatically requests a relevant landscape photo from the Unsplash API using the event title as the keyword.
+- The chosen image URL is stored alongside the event, so the frontend renders it like any manually supplied image.
+- The feature silently skips fallback images if the API key is missing or the request fails (your event will still be created).
 
 ### API Endpoints
 
