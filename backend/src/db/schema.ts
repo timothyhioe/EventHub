@@ -12,7 +12,7 @@ export const events = pgTable('events', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   latitude: numeric('latitude', { precision: 10, scale: 7 }),
-longitude: numeric('longitude', { precision: 10, scale: 7 }), 
+  longitude: numeric('longitude', { precision: 10, scale: 7 }), 
 });
 
 // Tags table

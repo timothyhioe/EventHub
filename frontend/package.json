@@ -16,14 +16,17 @@
   "dependencies": {
     "@mantine/hooks": "^8.3.6",
     "@mantine/notifications": "^8.3.6",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.548.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
     "@mantine/core": "^8.3.6",
     "@mantine/dates": "^8.3.6",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",

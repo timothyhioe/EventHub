@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, TextInput, Textarea, Button, Group, Stack, Paper, MultiSelect } from '@mantine/core';
+import { Container, Title, TextInput, Textarea, Button, Group, Stack, Paper, MultiSelect, Box, Text } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { ArrowLeft, Save } from 'lucide-react';
-import { eventsApi, tagsApi, participantsApi } from '../services/api';
+import { eventsApi, tagsApi, participantsApi, geocodingApi } from '../services/api';
 import type { EventResponse } from '../types/event';
 import type { TagResponse } from '../types/tag';
 import type { ParticipantResponse } from '../types/participant';
+import { LocationMap } from '../components/LocationMap';
+import { useDebouncedValue } from '@mantine/hooks';
 
 
 export function EventFormPage() {
@@ -35,6 +37,8 @@ export function EventFormPage() {
   const [participants, setParticipants] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [previewCoordinates, setPreviewCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [debouncedLocation] = useDebouncedValue(formData.location, 400);
 
   useEffect(() => {
     loadTags();
@@ -43,6 +47,46 @@ export function EventFormPage() {
       loadEvent();
     }
   }, [id, isEdit]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadLocationPreview = async () => {
+      const query = debouncedLocation.trim();
+      if (query.length < 2) {
+        setPreviewCoordinates(null);
+        return;
+      }
+  
+      try {
+        const suggestions = await geocodingApi.searchLocations(query);
+        if (!isActive) {
+          return;
+        }
+        if (suggestions.length > 0) {
+          const { latitude, longitude } = suggestions[0];
+          setPreviewCoordinates({
+            lat: latitude,
+            lng: longitude,
+          });
+        } else {
+          setPreviewCoordinates(null);
+        }
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+        console.error('Failed to load location preview:', error);
+        setPreviewCoordinates(null);
+      }
+    };
+  
+    loadLocationPreview();
+
+    return () => {
+      isActive = false;
+    };
+  }, [debouncedLocation]);
 
   const loadEvent = async () => {
     if (!id) return;
@@ -263,6 +307,20 @@ export function EventFormPage() {
                 }
               />
 
+              {previewCoordinates && formData.location && (
+                <Box mt="sm">
+                  <Text size="sm" c="dimmed" mb="xs">
+                    Location Preview
+                  </Text>
+                  <LocationMap
+                    latitude={previewCoordinates.lat}
+                    longitude={previewCoordinates.lng}
+                    address={formData.location}
+                    height={200}
+                  />
+                </Box>
+              )}
+
               <Textarea
                 label="Description"
                 placeholder="Describe your event"
@@ -278,9 +336,9 @@ export function EventFormPage() {
                 placeholder="Select date"
                 required
                 value={formData.date}
-                onChange={(value: string | null) => {
-                  const dateValue = value ? new Date(value) : null;
-                  setFormData({ ...formData, date: dateValue });
+                onChange={(value) => {
+                  const nextDate = value ? new Date(value) : null;
+                  setFormData({ ...formData, date: nextDate });
                 }}
                 error={errors.date}
                 minDate={new Date()}
