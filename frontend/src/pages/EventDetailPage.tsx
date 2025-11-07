@@ -161,7 +161,7 @@ export function EventDetailPage() {
                   </div>
                 </Group>
               </Grid.Col>
-              {event.location && (
+              {event.location && event.latitude && event.longitude && (
                 <Grid.Col span={{ base: 12, sm: 6 }}>
                   <Group gap="xs">
                     <MapPin size={20} />
@@ -171,6 +171,17 @@ export function EventDetailPage() {
                       </Text>
                       <Text size="sm">{event.location}</Text>
                     </div>
+                    <Button
+                        component="a"
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        leftSection={<MapPin size={16} />}
+                        variant="light"
+                        style={{ marginLeft: 'auto' }}
+                      >
+                        Get Directions
+                      </Button>
                   </Group>
                 </Grid.Col>
               )}
