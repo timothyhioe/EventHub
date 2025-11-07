@@ -11,6 +11,8 @@ export interface Event {
   imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
+  latitude?: number | string;
+  longitude?: number | string;
 }
 
 export interface EventWithRelations extends Event {
