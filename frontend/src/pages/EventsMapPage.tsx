@@ -66,8 +66,9 @@ export function EventsMapPage() {
                 No events with locations to display
             </Text>
             ) : (
-            <div style={{ height: '600px', borderRadius: '8px', overflow: 'hidden' }}>
+            <div className="events-map-container" style={{ height: '600px', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
                 <MapContainer
+                className="events-map"
                 center={getMapCenter()}
                 zoom={events.length === 1 ? 13 : 6}
                 style={{ height: '100%', width: '100%' }}

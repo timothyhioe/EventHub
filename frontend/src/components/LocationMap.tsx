@@ -21,8 +21,12 @@ function ChangeView({center, zoom}: {center: [number, number], zoom: number}) {
 
 export function LocationMap({ latitude, longitude, address, height = 200 }: LocationMapProps) {
     return (
-        <Box style={{ height: `${height}px`, width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+        <Box
+            className="location-map-container"
+            style={{ height: `${height}px`, width: '100%', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}
+        >
             <MapContainer
+                className="location-map"
                 center={[latitude, longitude]}
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}

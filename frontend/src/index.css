@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.location-map-container,
+.events-map-container {
+  position: relative;
+  z-index: 0;
+}
+
+.location-map-container .leaflet-container,
+.events-map-container .leaflet-container {
+  z-index: 0;
+}
+
+.mantine-DatePickerInput-popover,
+.mantine-DatePickerInput-dropdown {
+  z-index: 2000 !important;
+}

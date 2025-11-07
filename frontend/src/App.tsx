@@ -26,7 +26,7 @@ function AppLayout() {
       }}
       padding="md"
     >
-      <AppShell.Header>
+      <AppShell.Header style={{ zIndex: 2100 }}>
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />

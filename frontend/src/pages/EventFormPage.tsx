@@ -342,6 +342,7 @@ export function EventFormPage() {
                 }}
                 error={errors.date}
                 minDate={new Date()}
+                popoverProps={{ withinPortal: true, zIndex: 2100 }}
               />
 
               <TextInput
