@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Title, TextInput, Textarea, Button, Group, Stack, Paper, MultiSelect, Autocomplete } from '@mantine/core';
+import { Container, Title, TextInput, Textarea, Button, Group, Stack, Paper, MultiSelect } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -8,8 +8,6 @@ import { eventsApi, tagsApi, participantsApi } from '../services/api';
 import type { EventResponse } from '../types/event';
 import type { TagResponse } from '../types/tag';
 import type { ParticipantResponse } from '../types/participant';
-import { geocodingApi } from '../services/api';
-import { useDebouncedValue } from '@mantine/hooks';
 
 
 export function EventFormPage() {
@@ -37,9 +35,6 @@ export function EventFormPage() {
   const [participants, setParticipants] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
-  const [locationSearch, setLocationSearch] = useState('');
-  const [debouncedLocationSearch] = useDebouncedValue(locationSearch, 100);
 
   useEffect(() => {
     loadTags();
@@ -48,32 +43,6 @@ export function EventFormPage() {
       loadEvent();
     }
   }, [id, isEdit]);
-
-  //geocoding suggestions
-  useEffect(() => {
-    const loadLocationSuggestions = async () => {
-      if (debouncedLocationSearch.trim().length < 2) {
-        setLocationSuggestions([]);
-        return;
-      }
-  
-      try {
-        const suggestions = await geocodingApi.searchLocations(debouncedLocationSearch);
-        setLocationSuggestions(
-          suggestions
-            .map((s) => s.displayName)
-            .filter((name): name is string => Boolean(name))
-            .slice(0, 5)
-        );
-      } catch (error) {
-        console.error('Failed to load location suggestions:', error);
-        setLocationSuggestions([]);
-      }
-    };
-  
-    loadLocationSuggestions();
-  }, [debouncedLocationSearch]);
-
 
   const loadEvent = async () => {
     if (!id) return;
@@ -285,21 +254,13 @@ export function EventFormPage() {
                 error={errors.title}
               />
 
-              <Autocomplete
+              <TextInput
                 label="Location"
-                placeholder="Start typing a location..."
+                placeholder="Enter event location"
                 value={formData.location}
-                data={locationSuggestions}
-                onChange={(value) => {
-                  setFormData({ ...formData, location: value });
-                  setLocationSearch(value);
-                }}
-                onOptionSubmit={(value) => {
-                  setFormData({ ...formData, location: value });
-                  setLocationSearch('');
-                }}
-                limit={5}
-                maxDropdownHeight={200}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
               />
 
               <Textarea
