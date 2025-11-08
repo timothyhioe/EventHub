@@ -1,6 +1,7 @@
 import { Card, Image, Text, Badge, Button, Group, Stack } from '@mantine/core';
 import { Calendar, MapPin, Users } from 'lucide-react';
 import type { EventWithRelations } from '../types/event';
+import { formatEventDate } from '../utils/date';
 
 interface EventCardProps {
   event: EventWithRelations;
@@ -8,15 +9,6 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(date);
-  };
-
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Card.Section>
@@ -41,7 +33,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
         <Stack gap="xs">
           <Group gap="xs">
             <Calendar size={16} />
-            <Text size="sm">{formatDate(event.date)}</Text>
+            <Text size="sm">{formatEventDate(event.date)}</Text>
           </Group>
           {event.location && (
             <Group gap="xs">

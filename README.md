@@ -99,7 +99,6 @@ cd backend && npm run test:watch
 - ✅ Integration tests for controllers
 - ✅ API endpoint tests with Supertest
 - ✅ Test database setup with proper isolation
-- ✅ 25+ tests currently passing
 
 **Test Structure:**
 ```
@@ -124,12 +123,25 @@ backend/src/__tests__/
 
 ### Frontend Testing
 
-Frontend testing setup is ready for implementation:
+The frontend uses Jest with React Testing Library:
 
 ```bash
-# Run frontend tests (when implemented)
+# Run all frontend tests
 cd frontend && npm test
+
+# Watch mode
+cd frontend && npm run test:watch
+
+# CI-friendly (serial) run
+cd frontend && npm run test:ci
 ```
+
+**Coverage Highlights:**
+- ✅ Utility tests for shared helpers (e.g., date formatting)
+- ✅ Component tests for core UI (e.g., `EventCard`)
+- ✅ Integration tests for forms with mocked API interactions (`ParticipantForm`)
+- ✅ Routing smoke tests to ensure primary navigation works (`App`)
+- ✅ Leaflet and Mantine dependencies mocked for fast, deterministic runs
 
 ## API Documentation
 
