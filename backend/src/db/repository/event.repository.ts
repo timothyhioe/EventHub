@@ -125,9 +125,36 @@ export class EventRepository {
   }
 
   // Get single event by ID
-  async getEventById(id: string): Promise<EventResponse | null> {
+  async getEventById(id: string, includeRelations = false): Promise<EventResponse | null> {
     const event = await this.database.select().from(events).where(eq(events.id, id)).limit(1);
-    return event[0] || null;
+    
+    const baseEvent = event[0];
+    if(!baseEvent){
+      return null;
+    }
+    if(!includeRelations){
+      return baseEvent;
+    }
+
+    const [eventTagsData, eventParticipantsData] = await Promise.all([
+      this.database.select({
+        id: tags.id,
+        name: tags.name,
+        color: tags.color
+      }).from(eventTags).innerJoin(tags, eq(eventTags.tagId, tags.id)).where(eq(eventTags.eventId, id)),
+      this.database.select({
+        id: participants.id,
+        name: participants.name,
+        email: participants.email,
+        phone: participants.phone
+      }).from(eventParticipants).innerJoin(participants, eq(eventParticipants.participantId, participants.id)).where(eq(eventParticipants.eventId, id))
+    ]);
+
+    return {
+      ...baseEvent,
+      tags: eventTagsData,
+      participants: eventParticipantsData
+    };
   }
 
   // Create new event

@@ -213,7 +213,7 @@ export function EventDetailPage() {
                 <Paper p="md" withBorder>
                   <Text c="dimmed" ta="center">
                     No participants registered yet
-                  </Text>
+                  </Text> 
                 </Paper>
               ) : (
                 <Stack gap="sm">

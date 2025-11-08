@@ -124,7 +124,8 @@ export class EventController {
         return;
       }
 
-      const event = await this.eventRepository.getEventById(id);
+      const include = req.query.include === 'true';
+      const event = await this.eventRepository.getEventById(id, include);
       
       if (!event) {
         res.status(404).json({
