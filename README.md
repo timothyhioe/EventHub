@@ -88,7 +88,7 @@ EventHub combines a TypeScript/Node backend with a React/Mantine frontend. The g
 - Map view
 ![Events map view](docs/media/events-map.png)
 
-- Event Form with mini-map confirmation – `docs/media/event-detail.png`
+- Event Form with mini-map confirmation
 ![Event form with mini-map](docs/media/event-detail.png)
 
 ## Prerequisites
