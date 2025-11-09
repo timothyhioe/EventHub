@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Text, Stack, Button, Group, Loader, Center } from '@mantine/core';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { List, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { eventsApi } from '../services/api';
 import type { EventWithRelations } from '../types/event';
 
@@ -81,7 +81,7 @@ export function EventsMapPage() {
                 {events.map((event) => (
                     <Marker
                     key={event.id}
-                    position={[parseFloat(event.latitude!), parseFloat(event.longitude!)]}
+                    position={[parseFloat(String(event.latitude!)), parseFloat(String(event.longitude!))]}
                     >
                     <Popup>
                         <div style={{ minWidth: '200px' }}>

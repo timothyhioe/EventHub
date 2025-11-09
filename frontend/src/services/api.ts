@@ -1,3 +1,5 @@
+import type { EventResponse } from '../types/event';
+
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -20,7 +22,7 @@ async function apiRequest<T>(
     throw new Error(error.message || `HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 // Events API
@@ -34,7 +36,7 @@ export const eventsApi = {
     limit?: number;
     offset?: number;
     include?: boolean;
-  }) => {
+  }): Promise<EventResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.append('search', params.search);
     if (params?.location) queryParams.append('location', params.location);
@@ -46,12 +48,12 @@ export const eventsApi = {
     if (params?.include) queryParams.append('include', 'true');
 
     const query = queryParams.toString();
-    return apiRequest(`${'/events'}${query ? `?${query}` : ''}`);
+    return apiRequest<EventResponse>(`${'/events'}${query ? `?${query}` : ''}`);
   },
 
-  getById: async (id: string, includeRelations = false) => {
+  getById: async (id: string, includeRelations = false): Promise<EventResponse> => {
     const query = includeRelations ? '?include=true' : '';
-    return apiRequest(`/events/${id}${query}`);
+    return apiRequest<EventResponse>(`/events/${id}${query}`);
   },
 
   create: async (data: {
