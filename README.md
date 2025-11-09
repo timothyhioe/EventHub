@@ -1,256 +1,213 @@
 # EventHub
-A modern full-stack web application for managing events, participants, and tags.
 
-## Features
+EventHub is a modern full-stack platform for managing events, participants, and tags. Organizers can create events, enrich them with location-aware context, and keep attendees informed through rendered cards and maps.
 
-- **Event Management**: Create, read, update, and delete events
-- **Participant Management**: Manage event participants
-- **Tag System**: Organize events with color-coded tags
-- **Search & Filter**: Find events by various criteria
-- **Geocoding & Maps (Freestyle Feature 1)**: 
-  - Automatic address-to-coordinates conversion using Nominatim
-  - Location autocomplete with real-time suggestions
-  - Interactive map view showing all events
-  - Mini-map preview when creating/editing events
-  - Instant directions to events via Google Maps or OpenStreetMap
-- **Smart Event Imagery (Freestyle Feature 2)**:
-  - Automatically fills in event images from Unsplash when no URL is provided
-  - Uses event title keywords for relevant photography
-- **Responsive Design**: Works on desktop, tablet, and mobile
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Feature Highlights](#feature-highlights)
+- [Freestyle Feature Spotlight](#freestyle-feature-spotlight)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [UI Preview](#ui-preview)
+- [Prerequisites](#prerequisites)
+- [Environment Variables](#environment-variables)
+- [Installation & Setup](#installation--setup)
+- [Local Development](#local-development)
+- [Database Management](#database-management)
+- [Running Tests](#running-tests)
+- [API Documentation](#api-documentation)
+
+## Project Overview
+EventHub combines a TypeScript/Node backend with a React/Mantine frontend. The goal is to keep event logistics tidy, discoverable, and visually engaging—whether you are browsing a list, looking at a detail view, or exploring everything on a map.
+
+## Feature Highlights
+- **Event Management** – full CRUD support, including automatic geocoding and imagery.
+- **Participant Directory** – manage attendees, track contact details, and attach them to events.
+- **Tag System** – organize events with color-coded labels and quick filtering.
+- **Powerful Search & Filters** – find events by keyword, date range, tags, or location.
+- **Interactive Maps** – visualize events geographically and open directions in a single click.
+- **Responsive UI** – optimized layouts for desktop, tablet, and mobile breakpoints.
+
+## Freestyle Feature Spotlight
+### Geocoding & Maps
+- Converts addresses to coordinates with the Nominatim API.
+- Mini-map confirmation while creation/editing event's location so organizers can validate the spot.
+- Dedicated `/events/map` view that shows markers for every event.
+- One-click routing via Google Maps from the event detail page.
+
+### Smart Event Imagery
+- When an event is saved without an `imageUrl`, the backend requests a themed landscape photo from Unsplash.
+- Falls back if the API key is missing or the Unsplash request fails.
 
 ## Tech Stack
-
 ### Backend
-- Node.js with TypeScript
+- Node.js + TypeScript
 - Express.js
-- PostgreSQL
-- Drizzle ORM
-- Nominatim Geocoding API integration
-- Unsplash Image API integration
-- Docker
+- PostgreSQL (via Drizzle ORM)
+- Nominatim & Unsplash API integrations
+- Jest + Supertest for automated testing
+- Dockerized runtime
 
 ### Frontend
-- React with TypeScript
-- Mantine UI components
+- React + TypeScript (Vite)
+- Mantine UI, Mantine Hooks, Mantine Notifications
 - Leaflet & React-Leaflet for interactive maps
-- Location autocomplete with debouncing
-- Responsive design
+- Jest + React Testing Library
+- Dockerized runtime
+
+## Project Structure
+```
+├── backend/
+│   ├── src/
+│   │   ├── app.ts                # Express application bootstrap
+│   │   ├── controllers/          # HTTP controllers (events, tags, participants, geocoding)
+│   │   ├── routes/               # Express routers
+│   │   ├── services/             # Business logic + integrations
+│   │   ├── db/                   # Drizzle schema, migrations, repositories
+│   │   ├── middleware/           # Express middleware
+│   │   ├── errors/               # Error definitions & handlers
+│   │   └── __tests__/            # Jest unit & integration suites
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── pages/                # Route-level components
+│   │   ├── components/           # Reusable UI building blocks
+│   │   ├── services/             # API client
+│   │   ├── utils/                # Shared helpers
+│   │   └── __tests__/            # Jest + RTL tests
+│   └── Dockerfile
+├── docker-compose.yml            # Multi-service stack (PostgreSQL + apps)
+└── README.md                     # You are here
+```
+
+## UI Preview
+
+- Dashboard / Event list – `docs/media/dashboard.png`
+- Map view – `docs/media/events-map.png`
+- Event Form with mini-map confirmation – `docs/media/event-detail.png`
 
 ## Prerequisites
-
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
+- Docker & Docker Compose
+- Node.js 18+ and npm (only required for local, non-docker workflows)
 - Git
 
-## Quick Start
+## Environment Variables
+
+
+
+## Installation & Setup
 
 1. **Clone the repository**
-
-2. **Set up environment variables:**
    ```bash
+   git clone https://github.com/your-org/eventhub.git
+   cd eventhub
+   ```
+
+2. **Create environment files**
+   ```bash
+   # Backend
    cd backend
-   cp env.example .env
+   cp .env.example .env    # create if the template exists, otherwise create manually
+   # set DATABASE_URL, UNSPLASH_ACCESS_KEY, etc.
    cd ..
 
-3. **Run with Docker:**
+   # Frontend
+   cd frontend
+   cp .env.example .env    # create if the template exists, otherwise create manually
+   cd ..
+   ```
+
+3. **Run with Docker**
    ```bash
    docker compose up --build
    ```
 
-4. **Set up the database:**
+4. **Apply database migrations**
    ```bash
-   # Apply database migrations (run inside backend container or locally)
    docker compose exec backend npm run db:migrate
    ```
 
-5. **Access the application:**
+5. **Visit the stack**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - Database: localhost:5433 (PostgreSQL)
+   - Backend API Explorer: http://localhost:3001
+   - PostgreSQL: localhost:5433 (`postgres` / `postgres`)
 
-## Project Structure
 
-```
-├── backend/          # Node.js + TypeScript backend
-├── frontend/         # React + TypeScript frontend
-├── docker-compose.yml # Docker configuration
-└── README.md         # This file
-```
-
-## Testing
-
-### Backend Testing
-
-The backend includes comprehensive testing with Jest and Supertest:
+## Local Development
+Prefer to run services outside Docker? Install dependencies once and use the dev servers:
 
 ```bash
-# Run backend tests
-cd backend && npm test
-
-# Run tests with coverage
-cd backend && npm run test:coverage
-
-# Run tests in watch mode
-cd backend && npm run test:watch
-```
-
-**Test Coverage:**
-- ✅ Unit tests for all services (EventService, ParticipantService, TagService)
-- ✅ Integration tests for controllers
-- ✅ API endpoint tests with Supertest
-- ✅ Test database setup with proper isolation
-
-**Test Structure:**
-```
-backend/src/__tests__/
-├── setup.ts                    # Test database configuration
-├── services/                   # Unit tests for services
-│   ├── eventService.test.ts
-│   ├── participantService.test.ts
-│   └── tagService.test.ts
-├── controllers/                # Integration tests for controllers
-│   └── eventController.test.ts
-├── routes/                     # API endpoint tests
-│   └── api.test.ts
-└── helpers/
-    └── testApp.ts             # Test app setup helper
-```
-
-**Test Database:**
-- Separate test database (`event_management_test`)
-- Automatic cleanup between tests
-- Proper schema setup
-
-### Frontend Testing
-
-The frontend uses Jest with React Testing Library:
-
-```bash
-# Run all frontend tests
-cd frontend && npm test
-
-# Watch mode
-cd frontend && npm run test:watch
-
-# CI-friendly (serial) run
-cd frontend && npm run test:ci
-```
-
-**Coverage Highlights:**
-- ✅ Utility tests for shared helpers (e.g., date formatting)
-- ✅ Component tests for core UI (e.g., `EventCard`)
-- ✅ Integration tests for forms with mocked API interactions (`ParticipantForm`)
-- ✅ Routing smoke tests to ensure primary navigation works (`App`)
-- ✅ Leaflet and Mantine dependencies mocked for fast, deterministic runs
-
-## API Documentation
-
-The API documentation will be available once the backend is implemented.
-
-## Development
-
-### Backend Development
-```bash
+# Backend
 cd backend
 npm install
-cp env.example .env  # Create .env file
 npm run dev
-```
 
-### Database Management
-
-**Migration Commands:**
-```bash
-cd backend
-npm run db:generate     # Generate migration files from schema changes
-npm run db:migrate      # Apply migrations to main database
-npm run db:migrate:test # Apply migrations to test database
-npm run db:push         # Push schema directly (for development)
-npm run db:studio       # Open Drizzle Studio (GUI)
-```
-
-**Database Reset Commands:**
-```bash
-npm run db:reset        # Reset main database (drop + migrate)
-npm run db:reset:test   # Reset test database (drop + migrate)
-npm run db:drop         # Drop all tables in main database
-```
-
-**Migration Workflow:**
-1. Make changes to `src/db/schema.ts`
-2. Run `npm run db:generate` to create migration files
-3. Run `npm run db:migrate` to apply changes to database
-4. For tests: `npm run db:migrate:test`
-
-### Frontend Development
-```bash
+# Frontend (in a separate terminal)
 cd frontend
 npm install
 npm run dev
 ```
 
-## Database Schema
+Keep PostgreSQL running via Docker (`docker compose up postgres`) or point `DATABASE_URL` to your own instance.
 
-The database includes the following tables:
-- **events** - Event information (title, description, location, date, image, latitude, longitude)
-- **tags** - Color-coded tags for organizing events
-- **participants** - People who can attend events
-- **event_tags** - Many-to-many relationship between events and tags
-- **event_participants** - Many-to-many relationship between events and participants
+## Database Management
+```bash
+# Generate a migration from schema changes
+npm run db:generate
 
-**Geocoding Fields:**
-- `latitude` (numeric) - Automatically populated from location address
-- `longitude` (numeric) - Automatically populated from location address
+# Apply migrations to main database
+npm run db:migrate
 
-For detailed schema information, see `backend/src/db/schema.ts`
+# Apply migrations to the Jest test database
+npm run db:migrate:test
 
-## Geocoding & Mapping Features
+# Open Drizzle Studio GUI
+npm run db:studio
 
-### Automatic Geocoding
-When creating or updating an event with a location, the system automatically:
-1. Converts the address to coordinates using Nominatim API
-2. Stores latitude and longitude in the database
-3. Enables map-based features
-
-### Location Autocomplete
-The event form includes intelligent location search:
-- Mini-map preview of selected location
-
-### Interactive Maps
-- **Map View Page** (`/events/map`): See all events plotted on an interactive map
-- **Event Details**: Clickable markers with event information
-- **Get Directions**: One-click routing via Google Maps or OpenStreetMap
-- **Responsive**: Maps adapt to all screen sizes
-
-## Smart Event Imagery
-
-- When an event is created without an `imageUrl`, the backend automatically requests a relevant landscape photo from the Unsplash API using the event title as the keyword.
-- The chosen image URL is stored alongside the event, so the frontend renders it like any manually supplied image.
-- The feature silently skips fallback images if the API key is missing or the request fails (your event will still be created).
-
-### API Endpoints
-
-**Geocoding Search**
+# Reset databases (use with care)
+npm run db:reset        # drops + migrates main DB
+npm run db:reset:test   # drops + migrates test DB
 ```
-GET /api/geocoding/search?q={query}
-```
-Returns location suggestions with coordinates.
 
-Example response:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "displayName": "New York, United States",
-      "latitude": 40.7128,
-      "longitude": -74.0060,
-      "address": {
-        "city": "New York",
-        "state": "New York",
-        "country": "United States"
-      }
-    }
-  ]
-}
-````
+**Schema quick reference**
+- `events` — stores event metadata, imagery, and geocoded coordinates.
+- `tags` — color-coded labels.
+- `participants` — attendee directory with optional phone details.
+- `event_tags` / `event_participants` — join tables for many-to-many relationships.
+
+## Running Tests
+
+### Backend (Jest + Supertest)
+```bash
+cd backend
+npm test              # run once
+npm run test:watch    # watch mode
+npm run test:coverage # collect coverage
+```
+
+- Unit tests cover services and repositories.
+- Integration tests exercise controllers and routes with an isolated Postgres schema.
+- Test configuration lives in `backend/src/__tests__/setup.ts`.
+
+### Frontend (Jest + React Testing Library)
+```bash
+cd frontend
+npm test               # run all tests
+npm run test:watch     # watch mode
+npm run test:ci        # serial run for CI
+```
+
+- Utility coverage (`src/utils`), component tests (e.g., `EventCard`), and form/routing integration tests.
+- `src/setupTests.ts` polyfills browser APIs (e.g., `TextEncoder`, `ResizeObserver`) and mocks Leaflet.
+
+## API Documentation
+- **Postman Collection** – Import `docs/postman/EventHub.postman_collection.json` to explore endpoints (health checks, CRUD operations, geocoding, relationship management). Every request includes example payloads and scripts for quick seeding.
+- **Base URL** – `http://localhost:3001/api`
+- **Example workflow**:
+  1. `GET /events` – list events
+  2. `POST /events` – create an event (auto-geocodes + fetches imagery)
+  3. `POST /events/:id/tags` – attach a tag
+  4. `GET /geocoding/search?q=Darmstadt` – fetch coordinates for map confirmation
+
+
+
