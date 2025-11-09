@@ -190,6 +190,18 @@ npm run test:watch    # watch mode
 npm run test:coverage # collect coverage
 ```
 
+- Ensure the test database exists before running Jest. The default URL is `postgresql://postgres:postgres@localhost:5433/event_management_test` (see `backend/.env`).
+  - **Using Docker Compose (recommended):**
+    ```bash
+    docker compose up -d postgres
+    docker compose exec postgres psql -U postgres -c "CREATE DATABASE event_management_test;"
+    ```
+  - **Using a local Postgres install:** create the DB on the correct host/port, for example:
+    ```powershell
+    psql -h localhost -p 5433 -U postgres -c "CREATE DATABASE event_management_test;"
+    ```
+  - If your Postgres runs on a different port or uses another database, adjust `TEST_DATABASE_URL` accordingly.
+
 - Unit tests cover services and repositories.
 - Integration tests exercise controllers and routes with an isolated Postgres schema.
 - Test configuration lives in `backend/src/__tests__/setup.ts`.
