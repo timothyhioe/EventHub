@@ -82,9 +82,14 @@ EventHub combines a TypeScript/Node backend with a React/Mantine frontend. The g
 
 ## UI Preview
 
-- Dashboard / Event list – `docs/media/dashboard.png`
-- Map view – `docs/media/events-map.png`
+- Dashboard / Event list 
+![EventHub dashboard](docs/media/dashboard.png)
+
+- Map view
+![Events map view](docs/media/events-map.png)
+
 - Event Form with mini-map confirmation – `docs/media/event-detail.png`
+![Event form with mini-map](docs/media/event-detail.png)
 
 ## Prerequisites
 - Docker & Docker Compose
