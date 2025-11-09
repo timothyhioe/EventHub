@@ -20,7 +20,7 @@ export interface UpdateParticipantRequest {
 }
 
 export interface ParticipantResponse extends Participant {
-  events?: Array<{ id: string; title: string; date: Date }>;
+  events?: Array<{ id: string; title: string; date: string; location: string | null }>;
 }
 
 // Relationship Management Types

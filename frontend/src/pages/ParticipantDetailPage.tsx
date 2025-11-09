@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Title, Text, Button, Group, Stack, Paper, ActionIcon, Avatar, Divider, SimpleGrid, Card, Loader, Center } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ArrowLeft, Mail, Phone, Edit, Trash2, Calendar } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Edit, Trash2, Calendar, MapPin } from 'lucide-react';
 import { participantsApi } from '../services/api';
 import { ParticipantForm } from '../components/ParticipantForm';
 import type { ParticipantResponse, ParticipantWithEvents } from '../types/participant';
@@ -195,6 +195,15 @@ export function ParticipantDetailPage() {
                               {formatDate(event.date)}
                             </Text>
                           </Group>
+
+                          {event.location && (
+                            <Group gap="xs">
+                              <MapPin size={14} />
+                              <Text size="sm" c="dimmed">
+                                {event.location}
+                              </Text>
+                            </Group>
+                          )}
 
                           <Button variant="light" size="sm" fullWidth mt="xs">
                             View Event

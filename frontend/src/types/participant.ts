@@ -13,6 +13,7 @@ export interface ParticipantWithEvents extends Participant {
     id: string;
     title: string;
     date: string;
+    location: string | null;
   }>;
 }
 

@@ -27,7 +27,11 @@ export class RelationshipRepository {
       .where(and(
         eq(eventTags.eventId, eventId),
         eq(eventTags.tagId, tagId)
-      ));
+      ))
+      .returning({
+        eventId: eventTags.eventId,
+        tagId: eventTags.tagId
+      });
     
     return result.length > 0;
   }
@@ -56,7 +60,11 @@ export class RelationshipRepository {
       .where(and(
         eq(eventParticipants.eventId, eventId),
         eq(eventParticipants.participantId, participantId)
-      ));
+      ))
+      .returning({
+        eventId: eventParticipants.eventId,
+        participantId: eventParticipants.participantId
+      });
     
     return result.length > 0;
   }

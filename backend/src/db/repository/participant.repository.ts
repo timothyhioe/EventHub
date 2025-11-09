@@ -11,8 +11,23 @@ export class ParticipantRepository {
 
   // Get single participant by ID
   async getParticipantById(id: string): Promise<ParticipantResponse | null> {
-    const participant = await this.database.select().from(participants).where(eq(participants.id, id)).limit(1);
-    return participant[0] || null;
+    const participantResult = await this.database
+      .select()
+      .from(participants)
+      .where(eq(participants.id, id))
+      .limit(1);
+
+    const participant = participantResult[0];
+    if (!participant) {
+      return null;
+    }
+
+    const eventsForParticipant = await this.getEventsForParticipant(id);
+
+    return {
+      ...participant,
+      events: eventsForParticipant,
+    };
   }
 
   // Create new participant
@@ -50,19 +65,23 @@ export class ParticipantRepository {
   }
 
   // Get all events for a specific participant
-  async getEventsForParticipant(participantId: string): Promise<Array<{ id: string; title: string; date: Date }>> {
+  async getEventsForParticipant(participantId: string): Promise<Array<{ id: string; title: string; date: string; location: string | null }>> {
     const result = await this.database
       .select({
         id: events.id,
         title: events.title,
-        date: events.date
+        date: events.date,
+        location: events.location,
       })
       .from(events)
       .innerJoin(eventParticipants, eq(events.id, eventParticipants.eventId))
       .where(eq(eventParticipants.participantId, participantId))
       .orderBy(desc(events.date));
 
-    return result;
+    return result.map(event => ({
+      ...event,
+      date: event.date instanceof Date ? event.date.toISOString() : event.date,
+    }));
   }
 
   // Check if email already exists
