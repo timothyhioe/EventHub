@@ -42,6 +42,8 @@ function AppLayout() {
   const [opened, { toggle, close }] = useDisclosure();
   const location = useLocation();
   const navigate = useNavigate();
+  const isMapRoute = location.pathname.startsWith('/events/map');
+  const isEventsRoute = location.pathname.startsWith('/events') && !isMapRoute;
 
   return (
     <AppShell
@@ -70,7 +72,7 @@ function AppLayout() {
         <NavLink
           label="Events"
           leftSection={<Home size={20} />}
-          active={location.pathname.startsWith('/events')}
+          active={isEventsRoute}
           onClick={() => {
             navigate('/events');
             close();
@@ -97,7 +99,7 @@ function AppLayout() {
         <NavLink
           label="Map"
           leftSection={<MapPin size={20} />}
-          active={location.pathname.startsWith('/events/map')}
+          active={isMapRoute}
           onClick={() => {
             navigate('/events/map');
             close();
